@@ -1,0 +1,28 @@
+(POST): http://localhost:8001/apibis/login
+
+body:
+  {
+    "email": "mail@mail.com",
+    "password": "azertyuiop"
+  }
+
+(POST): http://localhost:8001/api/signup
+
+body:
+ {
+  "nom": "Dupont",
+  "prenom": "Jean",
+  "email": "jean.dupont@example.com",
+  "password": "securePassword123",
+  "role": "user",
+  "telephone": "0123456789"
+}
+
+sans telephone:
+{
+  "nom": "Dupont",
+  "prenom": "Jean",
+  "email": "jean.dupont@example.com",
+  "password": "securePassword123",
+  "role": "user"
+}
