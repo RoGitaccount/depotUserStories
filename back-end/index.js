@@ -2,6 +2,9 @@ import express from "express";
 import "dotenv/config";
 import signupRouter from "./routes/signup.js";
 import signinRouter from "./routes/signin.js";
+import passwordResetRouter from "./routes/passwordReset.js";
+import productsRouter from "./routes/products.js";
+import reviewsRouter from "./routes/reviews.js";
 
 const app = express();
 const port = 8001;
@@ -11,9 +14,10 @@ app.use(express.json());
 
 // Monter le routeur sur une route spécifique
 app.use("/api", signupRouter);
-
-// Monter le routeur pour la connexion sur la route /api/login
 app.use("/apibis", signinRouter);
+app.use("/api", passwordResetRouter);
+app.use("/api/products", productsRouter);
+app.use("/api/reviews", reviewsRouter);
 
 app.get("/", (req, res) => res.send("Test"));
 
