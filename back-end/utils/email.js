@@ -17,14 +17,12 @@ async function sendEmail(to, subject, text) {
     const accessToken = await oAuth2Client.getAccessToken();
 
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "ssl0.ovh.net",
+      port: 465,
+      secure: true, // true pour le port 465
       auth: {
-        type: " OAuth2",
-        user: process.env.EMAIL_USER,
-        clientId: process.env.CLIENT_ID,
-        clientSecret: process.env.CLIENT_SECRET,
-        refreshToken: process.env.REFRESH_TOKEN,
-        accessToken: accessToken.token,
+        user: process.env.EMAIL_USER, // votre adresse email OVH
+        pass: process.env.EMAIL_PASSWORD // votre mot de passe email OVH
       },
     });
 

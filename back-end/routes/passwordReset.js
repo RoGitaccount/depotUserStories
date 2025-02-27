@@ -25,6 +25,7 @@ router.post(
 
     try {
       GetUserByEmail(client, email, async (err, result) => {
+        console.log(client, email,err);
         if (err) {
           return res
             .status(500)
