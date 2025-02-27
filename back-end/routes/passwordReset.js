@@ -21,7 +21,7 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { email } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection();
 
     try {
       GetUserByEmail(client, email, async (err, result) => {
@@ -43,6 +43,7 @@ router.post(
           secret_key,
           { expiresIn: "15m" } // Token valide pendant 15 minutes
         );
+
 
         // Envoyer le lien de réinitialisation par email
         const resetLink = `http://localhost:8001/reset-password?token=${resetToken}`;
@@ -74,7 +75,7 @@ router.post(
 
     try {
       const decoded = jwt.verify(token, secret_key);
-      const client = getConnection("DSP");
+      const client = getConnection();
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
