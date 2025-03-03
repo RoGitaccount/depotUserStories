@@ -32,7 +32,7 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { nom, prenom, email, password, role, telephone } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection();
 
     try {
       GetUserByEmail(client, email, async (err, result) => {
@@ -50,6 +50,8 @@ router.post(
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+
+        console.log(hashedPassword, password);
 
         Insert_user(
           client,

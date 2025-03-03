@@ -26,3 +26,19 @@ sans telephone:
   "password": "securePassword123",
   "role": "user"
 }
+
+
+Modifier un produit:
+
+(PUT): http://localhost:8001/api/products/update/1
+
+body:
+
+{
+  "titre": "Nouveau titre",
+  "description": "Nouvelle description",
+  "prix": 100,
+  "stock": 10,
+  "image_url": "https://example.com/image.jpg",
+  "id_categorie": 1
+}

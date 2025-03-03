@@ -21,7 +21,7 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { titre, description, prix, stock, image_url, id_categorie } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection;
 
     try {
       Insert_product(client, { titre, description, prix, stock, image_url, id_categorie }, (err, results) => {
@@ -41,7 +41,7 @@ router.post(
 
 // Récupérer tous les produits
 router.get("/", async (req, res) => {
-  const client = getConnection("DSP");
+  const client = getConnection;
 
   try {
     Get_all_products(client, (err, results) => {
@@ -75,7 +75,7 @@ router.put(
   async (req, res) => {
     const { id_produit } = req.params;
     const { titre, description, prix, stock, image_url, id_categorie } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection;
 
     try {
       Update_product(client, { id_produit, titre, description, prix, stock, image_url, id_categorie }, (err, results) => {
@@ -101,7 +101,7 @@ router.delete(
   validateRequest,
   async (req, res) => {
     const { id_produit } = req.params;
-    const client = getConnection("DSP");
+    const client = getConnection;
 
     try {
       Delete_product(client, id_produit, (err, results) => {

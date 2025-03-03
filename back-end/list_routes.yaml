@@ -1,0 +1,189 @@
+openapi: 3.0.0
+info:
+  title: API Example
+  description: Exemple d'API pour tester OpenAPI avec Express.js
+  version: 1.0.0
+paths:
+## Produits ##
+  /api/products/add:
+    post:
+      summary: Ajouter un produit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Liste des produits
+          content:
+            application/json:
+              schema:
+                type: array
+                properties:
+                  titre:
+                    type: string
+                  description:
+                    type: string
+                  prix:
+                    type: number
+                  stock:
+                    type: number
+                  image_url:
+                    type: string
+                  id_categorie:
+                    type: number
+                items:
+                  type: string
+
+  /api/products:
+    get:
+      summary: Récupérer tous les produits
+      responses:
+        '200':
+          description: Liste des produits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /products/{product_id}:
+    get:
+      summary: Récupérer un produit spécifique
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Détails du produit
+
+
+  /api/signup:
+    post:
+      summary: Créer un compte utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nom
+                - prenom
+                - email
+                - password
+                - role
+              properties:
+                nom:
+                  type: string
+                  description: Le nom de l'utilisateur
+                  default: "Dupont"
+                prenom:
+                  type: string
+                  description: Le prénom de l'utilisateur
+                  default: "Jean"
+                email:
+                  type: string
+                  description: L'email de l'utilisateur
+                  default: "jean.dupont@test.fr"
+                password:
+                  type: string
+                  description: Le mot de passe de l'utilisateur
+                  default: "password"
+                role:
+                  type: string
+                  description: Le rôle de l'utilisateur
+                  default: "user"
+                telephone:
+                  type: string
+                  description: Le numéro de téléphone de l'utilisateur
+                  default: "0606060606"
+      responses:
+        '200':
+          description: Compte utilisateur créé avec succès
+        '400':
+          description: Données invalides
+
+  /api/signin/login:
+    post:
+      summary: Connexion utilisateur - Étape 1 (envoi du code de vérification)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  description: L'email de l'utilisateur
+                  default: "jean.dupont@test.fr"
+                password:
+                  type: string
+                  description: Le mot de passe de l'utilisateur
+                  default: "password123"
+      responses:
+        '200':
+          description: Code de vérification envoyé par email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          description: Mot de passe incorrect
+        '404':
+          description: Utilisateur non trouvé
+        '500':
+          description: Erreur serveur
+
+  /api/signin/verify:
+    post:
+      summary: Connexion utilisateur - Étape 2 (vérification du code)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - code
+              properties:
+                email:
+                  type: string
+                  description: L'email de l'utilisateur
+                  default: "jean.dupont@test.fr"
+                code:
+                  type: string
+                  description: Le code de vérification reçu par email
+                  default: "123456"
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+        '401':
+          description: Code de vérification incorrect ou expiré
+        '404':
+          description: Utilisateur non trouvé
+        '500':
+          description: Erreur serveur

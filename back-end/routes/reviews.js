@@ -19,7 +19,7 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { id_user, id_produit, note, commentaire } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection();
 
     try {
       Insert_review(client, { id_user, id_produit, note, commentaire }, (err, results) => {
@@ -40,7 +40,7 @@ router.post(
 // Récupérer les avis pour un produit
 router.get("/:id_produit", async (req, res) => {
   const { id_produit } = req.params;
-  const client = getConnection("DSP");
+  const client = getConnection;
 
   try {
     Get_reviews_by_product(client, id_produit, (err, results) => {
@@ -70,7 +70,7 @@ router.put(
   async (req, res) => {
     const { id_avis } = req.params;
     const { note, commentaire } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection;
 
     try {
       Update_review(client, { id_avis, note, commentaire }, (err, results) => {
@@ -96,7 +96,7 @@ router.delete(
   validateRequest,
   async (req, res) => {
     const { id_avis } = req.params;
-    const client = getConnection("DSP");
+    const client = getConnection;
 
     try {
       Delete_review(client, id_avis, (err, results) => {

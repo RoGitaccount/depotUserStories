@@ -25,7 +25,7 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { email, password } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection();
 
     try {
       GetUserByEmail(client, email, async (err, result) => {
@@ -91,7 +91,7 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { email, code } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection();
 
     try {
       GetUserByEmail(client, email, async (err, result) => {
