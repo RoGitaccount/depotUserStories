@@ -11,6 +11,8 @@ import { sendEmail } from "../utils/email.js";
 const router = express.Router();
 const secret_key = process.env.SECRET_KEY;
 
+router.get("/", (req, res) => res.send("signin"));
+
 //connexion
 router.post(
   "/login",
@@ -25,7 +27,7 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { email, password } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection();
 
     try {
       GetUserByEmail(client, email, async (err, result) => {
@@ -91,7 +93,7 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { email, code } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection();
 
     try {
       GetUserByEmail(client, email, async (err, result) => {

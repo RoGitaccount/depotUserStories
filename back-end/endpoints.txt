@@ -1,4 +1,4 @@
-(POST): http://localhost:8001/apibis/login
+(POST): http://localhost:8001/api/login
 
 body:
   {
@@ -25,4 +25,60 @@ sans telephone:
   "email": "jean.dupont@example.com",
   "password": "securePassword123",
   "role": "user"
+}
+
+
+(POST): http://localhost:8001/api/request-reset
+body:
+{
+  "email": "jean.dupont@example.com"
+}
+
+
+
+(POST): http://localhost:8001/api/products/add
+
+body:
+
+{
+"titre" : "ordi",
+"description" : "test",
+"prix" : "24.0",
+"stock" : "32",
+"id_categorie" : "1"
+}
+
+Modifier un produit:
+
+(PUT): http://localhost:8001/api/products/update/1
+
+body:
+
+{
+  "titre": "Nouveau titre",
+  "description": "Nouvelle description",
+  "prix": 100,
+  "stock": 10,
+  "image_url": "https://example.com/image.jpg",
+  "id_categorie": 1
+}
+
+(POST) http://localhost:8001/api/products/add
+{
+  "titre": "Nouveau produit",
+  "description": "Description du produit",
+  "prix": 99.99,
+  "stock": 10,
+  "id_categories": [1, 2]
+}
+
+(PUT) http://localhost:8001/api/productCategory/replace/4
+{
+  "ancienne_id": 1,
+  "nouvelle_id": 5
+}
+
+(PUT) http://localhost:8001/api/products/update/5
+{
+    "titre":"article du jour"
 }
