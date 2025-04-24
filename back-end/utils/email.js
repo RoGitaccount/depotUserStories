@@ -2,11 +2,7 @@ import nodemailer from "nodemailer";
 import { google } from "googleapis";
 import "dotenv/config";
 
-<<<<<<< HEAD
-// const OAuth2 = google.auth.OAuth2;
-=======
 //const OAuth2 = google.auth.OAuth2;
->>>>>>> c5e14193ab5215269ba2c2b6c1ac657a1e9aaf79
 
 // const oAuth2Client = new OAuth2(
 //   process.env.CLIENT_ID,
@@ -14,16 +10,6 @@ import "dotenv/config";
 //   process.env.REDIRECT_URI
 // );
 
-<<<<<<< HEAD
-//oAuth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
-
-async function sendEmail(to, subject, text) {
-  try {
-    //const accessToken = await oAuth2Client.getAccessToken();
-
-    const transporter = nodemailer.createTransport({
-      host: "ssl0.ovh.net",
-=======
 // oAuth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
 
 async function sendEmail(to, subject, text) {
@@ -48,7 +34,6 @@ async function sendEmail(to, subject, text) {
 
     const transporter = nodemailer.createTransport({
       host: "vps-f2442ff7.vps.ovh.net",
->>>>>>> c5e14193ab5215269ba2c2b6c1ac657a1e9aaf79
       port: 465,
       secure: true, // true pour le port 465
       auth: {

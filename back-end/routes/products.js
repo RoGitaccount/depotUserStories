@@ -15,6 +15,22 @@ import { Add_product_categories } from "../queries/productCategory.js";
 
 const router = express.Router();
 
+// Obtenir tous les produits
+router.get("/", async (req, res) => {
+  const client = getConnection();
+
+  try {
+    Get_all_products(client, (err, results) => {
+      client.end();
+      if (err) return res.status(500).json({ message: "Erreur lors de la récupération des produits." });
+      res.status(200).json(results);
+    });
+  } catch {
+    client.end();
+    res.status(500).json({ message: "Erreur serveur." });
+  }
+});
+
 // Ajouter un produit avec catégories
 router.post(
   "/add",
@@ -63,22 +79,6 @@ router.post(
     }
   }
 );
-
-// Obtenir tous les produits
-router.get("/", async (req, res) => {
-  const client = getConnection();
-
-  try {
-    Get_all_products(client, (err, results) => {
-      client.end();
-      if (err) return res.status(500).json({ message: "Erreur lors de la récupération des produits." });
-      res.status(200).json(results);
-    });
-  } catch {
-    client.end();
-    res.status(500).json({ message: "Erreur serveur." });
-  }
-});
 
 // Obtenir un produit par ID
 router.get(

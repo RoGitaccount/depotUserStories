@@ -1,72 +1,20 @@
 openapi: 3.0.0
 info:
-  title: API Example
-  description: Exemple d'API pour tester OpenAPI avec Express.js
+  title: API E-commerce
+  description: API pour la gestion d'une plateforme e-commerce
   version: 1.0.0
+  servers:
+    - url: http://localhost:8001
+      description: Serveur de développement
+
 paths:
-## Produits ##
-  /api/products/add:
-    post:
-      summary: Ajouter un produit
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        '200':
-          description: Liste des produits
-          content:
-            application/json:
-              schema:
-                type: array
-                properties:
-                  titre:
-                    type: string
-                  description:
-                    type: string
-                  prix:
-                    type: number
-                  stock:
-                    type: number
-                  image_url:
-                    type: string
-                  id_categorie:
-                    type: number
-                items:
-                  type: string
-
-  /api/products:
-    get:
-      summary: Récupérer tous les produits
-      responses:
-        '200':
-          description: Liste des produits
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-
-  /products/{product_id}:
-    get:
-      summary: Récupérer un produit spécifique
-      parameters:
-        - name: product_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Détails du produit
-
-
+## Authentification ##
   /api/signup:
     post:
       summary: Créer un compte utilisateur
+      description: Permet à un nouvel utilisateur de s'inscrire dans le système
+      tags: 
+        - Enregistrement
       requestBody:
         required: true
         content:
@@ -83,36 +31,80 @@ paths:
                 nom:
                   type: string
                   description: Le nom de l'utilisateur
-                  default: "Dupont"
+                  example: "Dupont"
                 prenom:
                   type: string
                   description: Le prénom de l'utilisateur
-                  default: "Jean"
+                  example: "Jean"
                 email:
                   type: string
+                  format: email
                   description: L'email de l'utilisateur
-                  default: "jean.dupont@test.fr"
+                  example: "jean.dupont@test.fr"
                 password:
                   type: string
+                  format: password
+                  minLength: 8
                   description: Le mot de passe de l'utilisateur
-                  default: "password"
+                  example: "password123"
                 role:
                   type: string
+                  enum: [admin, user]
                   description: Le rôle de l'utilisateur
-                  default: "user"
+                  example: "user"
                 telephone:
                   type: string
+                  pattern: '^[0-9]{10,15}$'
                   description: Le numéro de téléphone de l'utilisateur
-                  default: "0606060606"
+                  example: "0606060606"
       responses:
-        '200':
-          description: Compte utilisateur créé avec succès
+        '201':
+          description: Inscription réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Inscription réussie."
+        '409':
+          description: Email déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Cet email est déjà utilisé."
         '400':
           description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Le champ 'nom' est obligatoire."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de l'inscription."
 
-  /api/signin/login:
+  /api/login:
     post:
-      summary: Connexion utilisateur - Étape 1 (envoi du code de vérification)
+      summary: Connexion utilisateur
+      description: Permet à un utilisateur de se connecter
+      tags: 
+        - Connexion
       requestBody:
         required: true
         content:
@@ -125,15 +117,17 @@ paths:
               properties:
                 email:
                   type: string
+                  format: email
                   description: L'email de l'utilisateur
-                  default: "jean.dupont@test.fr"
+                  example: "jean.dupont@test.fr"
                 password:
                   type: string
+                  format: password
                   description: Le mot de passe de l'utilisateur
-                  default: "password123"
+                  example: "password123"
       responses:
         '200':
-          description: Code de vérification envoyé par email
+          description: Code de vérification envoyé
           content:
             application/json:
               schema:
@@ -141,16 +135,44 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: "Code de vérification envoyé. Veuillez vérifier votre email."
         '401':
-          description: Mot de passe incorrect
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Le mot de passe est incorrect"
         '404':
           description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Utilisateur non trouvé."
         '500':
           description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la connexion."
 
-  /api/signin/verify:
+  /api/verify:
     post:
-      summary: Connexion utilisateur - Étape 2 (vérification du code)
+      summary: Vérification du code de connexion
+      description: Permet de vérifier le code reçu par email et de finaliser la connexion
+      tags:
+        - Connexion
       requestBody:
         required: true
         content:
@@ -163,12 +185,13 @@ paths:
               properties:
                 email:
                   type: string
+                  format: email
                   description: L'email de l'utilisateur
-                  default: "jean.dupont@test.fr"
+                  example: "jean.dupont@test.fr"
                 code:
                   type: string
                   description: Le code de vérification reçu par email
-                  default: "123456"
+                  example: "123456"
       responses:
         '200':
           description: Connexion réussie
@@ -179,11 +202,2112 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: "Connexion réussie. Bienvenue Jean Dupont."
                   token:
                     type: string
+                    description: Token JWT pour l'authentification
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         '401':
-          description: Code de vérification incorrect ou expiré
+          description: Code invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Le code de vérification est incorrect ou a expiré."
         '404':
           description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Utilisateur non trouvé."
         '500':
           description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la vérification du code."
+
+## Gestion des mots de passe ##
+  /api/request-reset:
+    post:
+      summary: Demander une réinitialisation de mot de passe
+      description: Envoie un email avec un code de réinitialisation à l'utilisateur
+      tags: 
+        - Mot de passe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: L'email de l'utilisateur
+                  example: "jean.dupont@test.fr"
+      responses:
+        '200':
+          description: Code de réinitialisation envoyé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Un code de réinitialisation a été envoyé à votre adresse email."
+        '404':
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Aucun compte associé à cet email."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de l'envoi du code de réinitialisation."
+
+  /api/reset-password:
+    post:
+      summary: Réinitialiser le mot de passe
+      description: Permet de définir un nouveau mot de passe après vérification du code
+      tags:
+        - Mot de passe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - newPassword
+              properties:
+                token:
+                  type: string
+                  description: Token de réinitialisation
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+                  description: Nouveau mot de passe
+                  example: "nouveauMotDePasse123"
+      responses:
+        '200':
+          description: Mot de passe réinitialisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Mot de passe réinitialisé avec succès."
+        '400':
+          description: Token invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Token invalide ou expiré."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la réinitialisation du mot de passe."
+
+## Gestion des produits ##
+
+  /api/products:
+    get:
+      summary: Récupérer tous les produits
+      description: Retourne la liste de tous les produits
+      tags: 
+        - Produits
+      responses:
+        '200':
+          description: Liste des produits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id_produit:
+                      type: integer
+                      example: 1
+                    titre:
+                      type: string
+                      example: "Smartphone XYZ"
+                    description:
+                      type: string
+                      example: "Un smartphone dernier cri"
+                    prix:
+                      type: number
+                      format: float
+                      example: 699.99
+                    stock:
+                      type: integer
+                      example: 50
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la récupération des produits."
+
+  /api/products/add:
+    post:
+      summary: Ajouter un nouveau produit
+      description: Permet à un administrateur d'ajouter un nouveau produit
+      tags: 
+        - Produits
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - titre
+                - prix
+                - stock
+                - id_categories
+              properties:
+                titre:
+                  type: string
+                  description: Nom du produit
+                  example: "Smartphone XYZ"
+                description:
+                  type: string
+                  description: Description du produit
+                  example: "Un smartphone dernier cri"
+                prix:
+                  type: number
+                  format: float
+                  minimum: 0
+                  description: Prix du produit
+                  example: 699.99
+                stock:
+                  type: integer
+                  minimum: 0
+                  description: Quantité en stock
+                  example: 50
+                id_categories:
+                  type: array
+                  items:
+                    type: integer
+                  description: IDs des catégories
+                  example: [1, 2]
+      responses:
+        '201':
+          description: Produit ajouté
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Produit ajouté avec succès."
+                  id_produit:
+                    type: integer
+                    example: 1
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Le prix doit être un nombre positif."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de l'ajout du produit."
+
+  /api/products/{id_produit}:
+    get:
+      summary: Récupérer un produit
+      description: Retourne les détails d'un produit spécifique
+      tags: 
+        - Produits
+      parameters:
+        - name: id_produit
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du produit
+      responses:
+        '200':
+          description: Détails du produit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_produit:
+                    type: integer
+                    example: 1
+                  titre:
+                    type: string
+                    example: "Smartphone XYZ"
+                  description:
+                    type: string
+                    example: "Un smartphone dernier cri"
+                  prix:
+                    type: number
+                    format: float
+                    example: 699.99
+                  stock:
+                    type: integer
+                    example: 50
+        '404':
+          description: Produit non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Produit non trouvé."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la récupération du produit."
+
+  /api/products/update/{id_produit}:
+    put:
+      summary: Modifier un produit
+      description: Permet à un administrateur de modifier un produit
+      tags: 
+        - Produits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_produit
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du produit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                titre:
+                  type: string
+                  description: Nouveau nom du produit
+                  example: "Smartphone XYZ Pro"
+                description:
+                  type: string
+                  description: Nouvelle description
+                  example: "Version améliorée"
+                prix:
+                  type: number
+                  format: float
+                  minimum: 0
+                  description: Nouveau prix
+                  example: 799.99
+                stock:
+                  type: integer
+                  minimum: 0
+                  description: Nouveau stock
+                  example: 75
+      responses:
+        '200':
+          description: Produit modifié
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Produit modifié avec succès."
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Aucune donnée fournie pour la mise à jour."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la modification du produit."
+
+  /api/products/delete/{id_produit}:
+    delete:
+      tags: 
+        - Produits
+      summary: Supprimer un produit
+      description: Permet à un administrateur de supprimer un produit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_produit
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du produit
+      responses:
+        '200':
+          description: Produit supprimé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Produit supprimé avec succès."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la suppression du produit."
+
+## Gestion des avis ##
+  /api/reviews/add-review:
+    post:
+      summary: Ajouter un avis
+      description: Permet à un utilisateur d'ajouter un avis sur un produit
+      tags: 
+        - Avis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id_user
+                - id_produit
+                - note
+                - commentaire
+              properties:
+                id_user:
+                  type: integer
+                  description: ID de l'utilisateur
+                  example: 1
+                id_produit:
+                  type: integer
+                  description: ID du produit
+                  example: 1
+                note:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  description: Note (1-5)
+                  example: 4
+                commentaire:
+                  type: string
+                  description: Commentaire
+                  example: "Très bon produit !"
+      responses:
+        '201':
+          description: Avis ajouté
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Avis ajouté avec succès."
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "La note doit être entre 1 et 5."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de l'ajout de l'avis."
+
+  /api/reviews/{id_produit}:
+    get:
+      summary: Récupérer les avis
+      description: Retourne tous les avis d'un produit
+      tags: 
+        - Avis
+      parameters:
+        - name: id_produit
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du produit
+      responses:
+        '200':
+          description: Liste des avis
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id_avis:
+                      type: integer
+                      example: 1
+                    id_user:
+                      type: integer
+                      example: 1
+                    id_produit:
+                      type: integer
+                      example: 1
+                    note:
+                      type: integer
+                      example: 4
+                    commentaire:
+                      type: string
+                      example: "Très bon produit !"
+                    date_creation:
+                      type: string
+                      format: date-time
+                      example: "2024-03-20T10:30:00Z"
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la récupération des avis."
+
+  /api/reviews/update-review/{id_avis}:
+    put:
+      summary: Modifier un avis
+      description: Permet à un utilisateur de modifier son avis
+      tags: 
+        - Avis
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_avis
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'avis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - note
+                - commentaire
+              properties:
+                note:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  description: Nouvelle note
+                  example: 5
+                commentaire:
+                  type: string
+                  description: Nouveau commentaire
+                  example: "Excellent produit !"
+      responses:
+        '200':
+          description: Avis modifié
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Avis modifié avec succès."
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "La note doit être entre 1 et 5."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la modification de l'avis."
+
+  /api/reviews/delete-review/{id_avis}:
+    delete:
+      summary: Supprimer un avis
+      description: Permet à un utilisateur de supprimer son avis
+      tags: 
+        - Avis
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_avis
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'avis
+      responses:
+        '200':
+          description: Avis supprimé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Avis supprimé avec succès."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la suppression de l'avis."
+
+## Gestion des offres ##
+  /api/offers:
+    get:
+      summary: Récupérer toutes les offres
+      description: Retourne la liste de toutes les offres promotionnelles
+      tags:
+        - Offres
+      responses:
+        '200':
+          description: Liste des offres
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id_promotion:
+                      type: integer
+                      example: 1
+                    code:
+                      type: string
+                      example: "SUMMER2024"
+                    montant_reduction:
+                      type: number
+                      format: float
+                      example: 15.00
+                    date_expiration:
+                      type: string
+                      format: date-time
+                      example: "2024-08-31T23:59:59Z"
+                    est_actif:
+                      type: boolean
+                      example: true
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la récupération des promotions."
+
+  /api/offers/code/{code_promo}:
+    get:
+      summary: Vérifier un code promo
+      description: Vérifie la validité d'un code promotionnel
+      tags:
+        - Offres
+      parameters:
+        - name: code_promo
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Code promotionnel à vérifier
+      responses:
+        '200':
+          description: Code promo valide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_promotion:
+                    type: integer
+                    example: 1
+                  code:
+                    type: string
+                    example: "SUMMER2024"
+                  montant_reduction:
+                    type: number
+                    format: float
+                    example: 15.00
+                  date_expiration:
+                    type: string
+                    format: date-time
+                    example: "2024-08-31T23:59:59Z"
+                  est_actif:
+                    type: boolean
+                    example: true
+        '404':
+          description: Code promo invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Code promotionnel invalide ou expiré."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur serveur."
+
+  /api/offers/public/{id_promotion}:
+    get:
+      summary: Récupérer une offre publique
+      description: Récupère les détails d'une offre promotionnelle par son ID
+      tags:
+        - Offres
+      parameters:
+        - name: id_promotion
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la promotion
+      responses:
+        '200':
+          description: Détails de l'offre
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_promotion:
+                    type: integer
+                    example: 1
+                  code:
+                    type: string
+                    example: "SUMMER2024"
+                  montant_reduction:
+                    type: number
+                    format: float
+                    example: 15.00
+                  date_expiration:
+                    type: string
+                    format: date-time
+                    example: "2024-08-31T23:59:59Z"
+                  est_actif:
+                    type: boolean
+                    example: true
+        '404':
+          description: Offre non trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Promotion non trouvée ou expirée."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur serveur."
+
+  /api/offers/add:
+    post:
+      summary: Ajouter une offre
+      description: Permet à un administrateur d'ajouter une nouvelle offre promotionnelle
+      tags:
+        - Offres
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - montant_reduction
+                - date_expiration
+                - est_actif
+              properties:
+                code:
+                  type: string
+                  description: Code promotionnel
+                  example: "SUMMER2024"
+                montant_reduction:
+                  type: number
+                  format: float
+                  description: Montant de la réduction
+                  example: 15.00
+                date_expiration:
+                  type: string
+                  format: date-time
+                  description: Date d'expiration de l'offre
+                  example: "2024-08-31T23:59:59Z"
+                est_actif:
+                  type: boolean
+                  description: Statut de l'offre
+                  example: true
+      responses:
+        '201':
+          description: Offre ajoutée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Promotion ajoutée avec succès."
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Le champ 'code' est obligatoire."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de l'ajout de la promotion."
+
+  /api/offers/{id_promotion}:
+    get:
+      summary: Récupérer une offre
+      description: Retourne les détails d'une offre spécifique
+      tags:
+        - Offres
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_promotion
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la promotion
+      responses:
+        '200':
+          description: Détails de l'offre
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_promotion:
+                    type: integer
+                    example: 1
+                  code:
+                    type: string
+                    example: "SUMMER2024"
+                  montant_reduction:
+                    type: number
+                    format: float
+                    example: 15.00
+                  date_expiration:
+                    type: string
+                    format: date-time
+                    example: "2024-08-31T23:59:59Z"
+                  est_actif:
+                    type: boolean
+                    example: true
+        '404':
+          description: Offre non trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Promotion non trouvée."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la récupération de la promotion."
+
+  /api/offers/update/{id_promotion}:
+    put:
+      summary: Modifier une offre
+      description: Permet à un administrateur de modifier une offre
+      tags:
+        - Offres
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_promotion
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la promotion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - montant_reduction
+                - date_expiration
+                - est_actif
+              properties:
+                code:
+                  type: string
+                  description: Nouveau code promotionnel
+                  example: "SUMMER2024"
+                montant_reduction:
+                  type: number
+                  format: float
+                  description: Nouveau montant de réduction
+                  example: 20.00
+                date_expiration:
+                  type: string
+                  format: date-time
+                  description: Nouvelle date d'expiration
+                  example: "2024-09-30T23:59:59Z"
+                est_actif:
+                  type: boolean
+                  description: Nouveau statut
+                  example: true
+      responses:
+        '200':
+          description: Offre modifiée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Promotion modifiée avec succès."
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Le champ 'code' est obligatoire."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la modification de la promotion."
+
+  /api/offers/delete/{id_promotion}:
+    delete:
+      summary: Supprimer une offre
+      description: Permet à un administrateur de supprimer une offre
+      tags:
+        - Offres
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_promotion
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la promotion
+      responses:
+        '200':
+          description: Offre supprimée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Promotion supprimée avec succès."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la suppression."
+
+  /api/offers/toggle/{id_promotion}:
+    patch:
+      summary: Activer/Désactiver une offre
+      description: Permet à un administrateur d'activer ou désactiver une offre
+      tags:
+        - Offres
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_promotion
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la promotion
+      responses:
+        '200':
+          description: Statut mis à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Statut de la promotion mis à jour."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de l'activation/désactivation."
+
+## Gestion des catégories ##
+
+  /api/category:
+    get:
+      summary: Récupérer les catégories
+      description: Retourne la liste de toutes les catégories
+      tags: 
+        - Catégories
+      responses:
+        '200':
+          description: Liste des catégories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id_categorie:
+                      type: integer
+                      example: 1
+                    nom_categorie:
+                      type: string
+                      example: "Électronique"
+                    description:
+                      type: string
+                      example: "Produits électroniques"
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la récupération des catégories."
+
+  /api/category/add:
+    post:
+      summary: Ajouter une catégorie
+      description: Permet à un administrateur d'ajouter une catégorie
+      tags: 
+        - Catégories
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nom_categorie
+              properties:
+                nom_categorie:
+                  type: string
+                  description: Nom de la catégorie
+                  example: "Électronique"
+                description:
+                  type: string
+                  description: Description de la catégorie
+                  example: "Produits électroniques"
+      responses:
+        '201':
+          description: Catégorie ajoutée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Catégorie ajoutée avec succès."
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Le nom de la catégorie est requis."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la création de la catégorie."
+
+  /api/category/{id_categorie}:
+    get:
+      summary: Récupérer une catégorie
+      description: Retourne les détails d'une catégorie
+      tags: 
+        - Catégories
+      parameters:
+        - name: id_categorie
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la catégorie
+      responses:
+        '200':
+          description: Détails de la catégorie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_categorie:
+                    type: integer
+                    example: 1
+                  nom_categorie:
+                    type: string
+                    example: "Électronique"
+                  description:
+                    type: string
+                    example: "Produits électroniques"
+        '404':
+          description: Catégorie non trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Catégorie non trouvée."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la récupération de la catégorie."
+
+  /api/category/update/{id_categorie}:
+    put:
+      summary: Modifier une catégorie
+      description: Permet à un administrateur de modifier une catégorie
+      tags: 
+        - Catégories
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_categorie
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la catégorie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nom_categorie
+              properties:
+                nom_categorie:
+                  type: string
+                  description: Nouveau nom
+                  example: "Électronique et Gadgets"
+                description:
+                  type: string
+                  description: Nouvelle description
+                  example: "Produits électroniques et gadgets"
+      responses:
+        '200':
+          description: Catégorie modifiée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Catégorie modifiée avec succès."
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Le nom de la catégorie est requis."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la modification de la catégorie."
+
+  /api/category/delete/{id_categorie}:
+    delete:
+      summary: Supprimer une catégorie
+      description: Permet à un administrateur de supprimer une catégorie
+      tags: 
+        - Catégories
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_categorie
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la catégorie
+      responses:
+        '200':
+          description: Catégorie supprimée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Catégorie supprimée avec succès."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la suppression de la catégorie."
+
+## Gestion RGPD ##
+  /api/rgpd/get/{id_user}:
+    get:
+      summary: Récupérer les informations personnelles
+      description: Permet à un utilisateur de récupérer ses données personnelles
+      tags:
+        - RGPD
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Informations personnelles récupérées
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nom:
+                    type: string
+                    example: "Dupont"
+                  prenom:
+                    type: string
+                    example: "Jean"
+                  email:
+                    type: string
+                    format: email
+                    example: "jean.dupont@test.fr"
+                  telephone:
+                    type: string
+                    example: "0606060606"
+        '404':
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Utilisateur introuvable."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur serveur."
+
+  /api/rgpd/put/{id_user}:
+    put:
+      summary: Mettre à jour les informations personnelles
+      description: Permet à un utilisateur de modifier ses données personnelles
+      tags:
+        - RGPD
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                  description: Nouveau nom
+                  example: "Dupont"
+                prenom:
+                  type: string
+                  description: Nouveau prénom
+                  example: "Jean"
+                email:
+                  type: string
+                  format: email
+                  description: Nouvel email
+                  example: "jean.dupont@test.fr"
+                telephone:
+                  type: string
+                  description: Nouveau numéro de téléphone
+                  example: "0606060606"
+      responses:
+        '200':
+          description: Informations mises à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Données personnelles mises à jour avec succès."
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email invalide."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la mise à jour."
+
+  /api/rgpd/del/{id_user}:
+    delete:
+      summary: Supprimer le compte
+      description: Permet à un utilisateur de supprimer son compte (droit à l'effacement)
+      tags:
+        - RGPD
+      parameters:
+        - name: id_user
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Compte supprimé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Compte utilisateur supprimé avec succès."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la suppression."
+
+## Gestion des catégories de produits ##
+  /api/productCategory/add:
+    post:
+      summary: Ajouter des catégories à un produit
+      description: Permet à un administrateur d'associer plusieurs catégories à un produit
+      tags:
+        - Catégories de produits
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id_produit
+                - categories
+              properties:
+                id_produit:
+                  type: integer
+                  description: ID du produit
+                  example: 1
+                categories:
+                  type: array
+                  items:
+                    type: integer
+                  description: Liste des IDs des catégories à associer
+                  example: [1, 2, 3]
+      responses:
+        '200':
+          description: Catégories associées
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Catégories associées avec succès."
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Une liste de catégories est requise."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de l'ajout des catégories."
+
+  /api/productCategory/produit/{id_produit}:
+    get:
+      summary: Récupérer les catégories d'un produit
+      description: Retourne toutes les catégories associées à un produit spécifique
+      tags:
+        - Catégories de produits
+      parameters:
+        - name: id_produit
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du produit
+      responses:
+        '200':
+          description: Liste des catégories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id_categorie:
+                      type: integer
+                      example: 1
+                    nom_categorie:
+                      type: string
+                      example: "Électronique"
+                    description:
+                      type: string
+                      example: "Produits électroniques"
+        '400':
+          description: ID invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ID produit invalide."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la récupération."
+
+  /api/productCategory/categorie/{id_categorie}:
+    get:
+      summary: Récupérer les produits d'une catégorie
+      description: Retourne tous les produits associés à une catégorie spécifique
+      tags:
+        - Catégories de produits
+      parameters:
+        - name: id_categorie
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la catégorie
+      responses:
+        '200':
+          description: Liste des produits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id_produit:
+                      type: integer
+                      example: 1
+                    titre:
+                      type: string
+                      example: "Smartphone XYZ"
+                    description:
+                      type: string
+                      example: "Un smartphone dernier cri"
+                    prix:
+                      type: number
+                      format: float
+                      example: 699.99
+                    stock:
+                      type: integer
+                      example: 50
+        '400':
+          description: ID invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ID catégorie invalide."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la récupération."
+
+  /api/productCategory/delete/{id_produit}/{id_categorie}:
+    delete:
+      summary: Supprimer une association produit-catégorie
+      description: Permet à un administrateur de supprimer l'association entre un produit et une catégorie
+      tags:
+        - Catégories de produits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_produit
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du produit
+        - name: id_categorie
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la catégorie
+      responses:
+        '200':
+          description: Association supprimée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Association supprimée."
+        '400':
+          description: IDs invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ID produit ou catégorie invalide."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la suppression de l'association."
+
+  /api/productCategory/replace/{id_produit}:
+    put:
+      summary: Remplacer une catégorie d'un produit
+      description: Permet à un administrateur de remplacer une catégorie associée à un produit
+      tags:
+        - Catégories de produits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_produit
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du produit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ancienne_id
+                - nouvelle_id
+              properties:
+                ancienne_id:
+                  type: integer
+                  description: ID de l'ancienne catégorie
+                  example: 1
+                nouvelle_id:
+                  type: integer
+                  description: ID de la nouvelle catégorie
+                  example: 2
+      responses:
+        '200':
+          description: Catégorie remplacée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Catégorie remplacée."
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Ancienne catégorie invalide."
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès non autorisé."
+        '403':
+          description: Accès interdit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Accès réservé aux administrateurs."
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors du remplacement."

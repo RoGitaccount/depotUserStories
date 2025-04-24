@@ -14,6 +14,25 @@ import {
 
 const router = express.Router();
 
+// Récupérer toutes les catégories
+router.get("/", async (req, res) => {
+  const client = getConnection();
+
+  try {
+    Get_all_categories(client, (err, results) => {
+      client.end();
+      if (err) {
+        console.error("Erreur SQL dans Get_all_category :", err);
+        return res.status(500).json({ message: "Erreur lors de la récupération des catégories." });
+      }
+      res.status(200).json(results);
+    });
+  } catch {
+    client.end();
+    res.status(500).json({ message: "Erreur serveur." });
+  }
+});
+
 router.post(
   "/add",
   // authenticateToken,
@@ -42,25 +61,6 @@ router.post(
     }
   }
 );
-
-// Récupérer toutes les catégories
-router.get("/", async (req, res) => {
-  const client = getConnection();
-
-  try {
-    Get_all_categories(client, (err, results) => {
-      client.end();
-      if (err) {
-        console.error("Erreur SQL dans Get_all_category :", err);
-        return res.status(500).json({ message: "Erreur lors de la récupération des catégories." });
-      }
-      res.status(200).json(results);
-    });
-  } catch {
-    client.end();
-    res.status(500).json({ message: "Erreur serveur." });
-  }
-});
 
 // Récupérer une seule catégorie (si un utilisateur cherche des articles en rapport avec la catégorie)
 router.get(

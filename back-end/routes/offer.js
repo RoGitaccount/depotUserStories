@@ -8,6 +8,34 @@ import * as PromotionQueries from "../queries/offer.js";
 
 const router = express.Router();
 
+/* ----------  Obtenir toutes les promos ---------- */
+router.get(
+  "/",
+  // authenticateToken,
+  // isAdmin,
+  async (req, res) => {
+    const client = getConnection();
+
+    try {
+      PromotionQueries.Get_all_offers_admin(client, (err, results) => {
+        if (err) {
+          console.error("Erreur lors de la récupération des promotions :", err);
+          return res.status(500).json({ message: "Erreur lors de la récupération des promotions." });
+        }
+        res.status(200).json(results);
+      });
+    } catch (error) {
+      console.error("Erreur serveur :", error);
+      res.status(500).json({ message: "Erreur serveur." });
+    } finally {
+      // Fermez la connexion dans le bloc `finally`
+      client.end((endErr) => {
+        if (endErr) console.error("Erreur lors de la fermeture de la connexion :", endErr);
+      });
+    }
+  }
+);
+
 //Vérifie un code promo
 router.get(
   "/code/:code_promo",
@@ -81,34 +109,6 @@ router.post(
     } catch {
       client.end();
       res.status(500).json({ message: "Erreur serveur." });
-    }
-  }
-);
-
-/* ----------  Obtenir toutes les promos ---------- */
-router.get(
-  "/",
-  // authenticateToken,
-  // isAdmin,
-  async (req, res) => {
-    const client = getConnection();
-
-    try {
-      PromotionQueries.Get_all_offers_admin(client, (err, results) => {
-        if (err) {
-          console.error("Erreur lors de la récupération des promotions :", err);
-          return res.status(500).json({ message: "Erreur lors de la récupération des promotions." });
-        }
-        res.status(200).json(results);
-      });
-    } catch (error) {
-      console.error("Erreur serveur :", error);
-      res.status(500).json({ message: "Erreur serveur." });
-    } finally {
-      // Fermez la connexion dans le bloc `finally`
-      client.end((endErr) => {
-        if (endErr) console.error("Erreur lors de la fermeture de la connexion :", endErr);
-      });
     }
   }
 );
