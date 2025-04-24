@@ -21,10 +21,11 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { email } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection();
 
     try {
       GetUserByEmail(client, email, async (err, result) => {
+        console.log(client,email,err);
         if (err) {
           return res
             .status(500)
@@ -73,7 +74,7 @@ router.post(
 
     try {
       const decoded = jwt.verify(token, secret_key);
-      const client = getConnection("DSP");
+      const client = getConnection();
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 

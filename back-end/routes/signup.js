@@ -32,7 +32,7 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { nom, prenom, email, password, role, telephone } = req.body;
-    const client = getConnection("DSP");
+    const client = getConnection();
 
     try {
       GetUserByEmail(client, email, async (err, result) => {
