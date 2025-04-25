@@ -80,10 +80,10 @@ npm run client
 ### Base de donnée
 - MySQL
 
-## API Reference
+## Référence de l'API
 [Documentation de l'API](http://localhost:8001/api-docs/)
 
-## Authors
+## Auteurs
 
 - [@RoGitaccount](https://www.github.com/RoGitaccount)
 - [@Kanoox](https://www.github.com/Kanoox)
