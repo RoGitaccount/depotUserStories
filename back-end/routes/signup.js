@@ -24,14 +24,14 @@ router.post(
       .withMessage("Le rôle doit être soit 'admin' soit 'user'."),
     body("telephone")
       .optional()
-      .matches(/^[0-9]{10,15}$/)
+      .matches(/^[0-9]{10,10}$/)
       .withMessage(
-        "Le numéro de téléphone doit contenir entre 10 et 15 chiffres."
+        "Le numéro de téléphone doit contenir 10 chiffres"
       ),
   ],
   validateRequest,
   async (req, res) => {
-    const { nom, prenom, email, password, role, telephone } = req.body;
+    const { nom, prenom, email, role, password, telephone } = req.body;
     const client = getConnection();
 
     try {
@@ -50,7 +50,7 @@ router.post(
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-
+        
         Insert_user(
           client,
           { nom, prenom, email, role, password: hashedPassword, telephone },

@@ -1,3 +1,5 @@
+![Logo](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/th5xamgrr6se0x5ro4g6.png)
+
 # Projet de Gestion des User Stories
 
 Ce projet est une application web complète pour la gestion des user stories, composée d'un front-end et d'un back-end. Il est dédié à un projet de Bachelor.
@@ -17,7 +19,7 @@ Ce projet est une application web complète pour la gestion des user stories, co
 - Node.js (version recommandée : 18.x ou supérieure)
 - npm (généralement installé avec Node.js)
 
-## Installation
+## 📦 Installation
 
 1. Cloner le repository :
 ```bash
@@ -68,17 +70,17 @@ npm run client
 - API RESTful
 - Base de données intégrée
 
-## Technologies Utilisées
+## 🛠️ Technologies utilisées
 
 ### Front-end
-- React
+- ⚛️ [React](https://reactjs.org/)
 
 ### Back-end
-- Node.js
-- Express
+- 🟢 [Node.js](https://nodejs.org/)
+- 🚀 [Express](https://expressjs.com/)
 
-### Base de donnée
-- MySQL
+### Base de données
+- 🐬 [MySQL](https://www.mysql.com/)
 
 ## Référence de l'API
 [Documentation de l'API](http://localhost:8001/api-docs/)
