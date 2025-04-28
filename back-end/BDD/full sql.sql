@@ -1,5 +1,5 @@
 -- Tables sans dépendances externes
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id_user INT AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     prenom VARCHAR(100) NOT NULL,
@@ -9,13 +9,13 @@ CREATE TABLE users (
     telephone VARCHAR(15)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
     id_categorie INT AUTO_INCREMENT PRIMARY KEY,
     nom_categorie VARCHAR(100) NOT NULL UNIQUE,
     description TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE promotions (
+CREATE TABLE IF NOT EXISTS promotions (
     id_promotion INT AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(50) UNIQUE,
     montant_reduction DECIMAL(10, 2),
@@ -24,7 +24,7 @@ CREATE TABLE promotions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Tables dépendant de users
-CREATE TABLE adresses_livraison (
+CREATE TABLE IF NOT EXISTS adresses_livraison (
     id_adresse INT AUTO_INCREMENT PRIMARY KEY,
     id_user INT,
     adresse_ligne1 VARCHAR(255) NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE adresses_livraison (
     FOREIGN KEY (id_user) REFERENCES users(id_user)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE logs (
+CREATE TABLE IF NOT EXISTS logs (
     id_logs INT AUTO_INCREMENT PRIMARY KEY,
     id_user INT,
     activite VARCHAR(255),
@@ -44,7 +44,7 @@ CREATE TABLE logs (
     FOREIGN KEY (id_user) REFERENCES users(id_user)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE commandes (
+CREATE TABLE IF NOT EXISTS commandes (
     id_commande INT AUTO_INCREMENT PRIMARY KEY,
     id_user INT,
     montant_total DECIMAL(10, 2) NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE commandes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Tables dépendant de categories
-CREATE TABLE produits (
+CREATE TABLE IF NOT EXISTS produits (
     id_produit INT AUTO_INCREMENT PRIMARY KEY,
     titre VARCHAR(255) NOT NULL,
     description TEXT,
@@ -69,7 +69,7 @@ CREATE TABLE produits (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Tables dépendant de commandes
-CREATE TABLE paiements (
+CREATE TABLE IF NOT EXISTS paiements (
     id_paiement INT AUTO_INCREMENT PRIMARY KEY,
     id_commande INT,
     methode_paiement ENUM('carte_bancaire', 'paypal', 'virement_bancaire'),
@@ -79,7 +79,7 @@ CREATE TABLE paiements (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Tables avec dépendances multiples
-CREATE TABLE details_commandes (
+CREATE TABLE IF NOT EXISTS details_commandes (
     id_detail_commande INT AUTO_INCREMENT PRIMARY KEY,
     id_commande INT,
     id_produit INT,
@@ -89,7 +89,7 @@ CREATE TABLE details_commandes (
     FOREIGN KEY (id_produit) REFERENCES produits(id_produit)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE avis (
+CREATE TABLE IF NOT EXISTS avis (
     id_avis INT AUTO_INCREMENT PRIMARY KEY,
     id_user INT,
     id_produit INT,
@@ -101,7 +101,7 @@ CREATE TABLE avis (
     FOREIGN KEY (id_produit) REFERENCES produits(id_produit)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE wishlist (
+CREATE TABLE IF NOT EXISTS wishlist (
     id_liste_souhait INT AUTO_INCREMENT PRIMARY KEY,
     id_user INT,
     id_produit INT,
@@ -109,3 +109,11 @@ CREATE TABLE wishlist (
     FOREIGN KEY (id_user) REFERENCES users(id_user),
     FOREIGN KEY (id_produit) REFERENCES produits(id_produit)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS produit_categorie (
+  id_produit INT NOT NULL,
+  id_categorie INT NOT NULL,
+  PRIMARY KEY (id_produit, id_categorie),
+  FOREIGN KEY (id_produit) REFERENCES produits(id_produit) ON DELETE CASCADE,
+  FOREIGN KEY (id_categorie) REFERENCES categories(id_categorie) ON DELETE CASCADE
+);

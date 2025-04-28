@@ -85,6 +85,9 @@ npm run client
 ## Référence de l'API
 [Documentation de l'API](http://localhost:8001/api-docs/)
 
+## Documentation
+[Documentation du projet](https://docs.google.com/document/d/1b7uuVyRgr8lK8Bb7MmUneEHy8vj8_pv4kxLboGslGMo/edit?pli=1&tab=t.0)
+
 ## Auteurs
 
 - [@RoGitaccount](https://www.github.com/RoGitaccount)
