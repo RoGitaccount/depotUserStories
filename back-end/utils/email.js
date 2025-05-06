@@ -33,7 +33,7 @@ async function sendEmail(to, subject, text) {
     // });
 
     const transporter = nodemailer.createTransport({
-      host: "vps-f2442ff7.vps.ovh.net",
+      host: "smtp.hostinger.com",
       port: 465,
       secure: true, // true pour le port 465
       auth: {
