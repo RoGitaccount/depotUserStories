@@ -46,7 +46,7 @@ router.post(
 
 
         // Envoyer le lien de réinitialisation par email
-        const resetLink = `http://localhost:8001/reset-password?token=${resetToken}`;
+        const resetLink = `http://localhost:8001/api/reset-password?token=${resetToken}`;
         try {
           await sendEmail(user.email, 'Réinitialisation de mot de passe', `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`);
           res.status(200).json({ message: "Lien de réinitialisation envoyé. Veuillez vérifier votre email." });

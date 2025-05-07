@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import { Insert_user, GetUserByEmail } from "../queries/User.js";
 import validateRequest from "../middlewares/validateRequest.js";
 import { getConnection } from "../queries/connect.js";
+import { sendEmail } from "../utils/email.js";
+
 
 const router = express.Router();
 
@@ -11,8 +13,8 @@ const router = express.Router();
 router.post(
   "/signup",
   [
-    body("nom").notEmpty().withMessage("Le champ 'nom' est obligatoire."),
     body("prenom").notEmpty().withMessage("Le champ 'prenom' est obligatoire."),
+    body("nom").notEmpty().withMessage("Le champ 'nom' est obligatoire."),
     body("email")
       .isEmail()
       .withMessage("Le champ 'email' doit être une adresse email valide."),
@@ -50,21 +52,40 @@ router.post(
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        
-        Insert_user(
-          client,
-          { nom, prenom, email, role, password: hashedPassword, telephone },
-          (err, results) => {
-            if (err) {
+        try {
+          await sendEmail(email, 'Bienvenue chez () – Merci pour votre inscription !', `Bonjour ${prenom},
+            Merci pour votre inscription chez () !
+            Nous sommes ravis de vous compter parmi nos nouveaux membres.
+
+            Votre compte est maintenant actif et vous pouvez dès à présent :
+            ✅ Accéder à nos services
+            ✅ Suivre vos commandes / rendez-vous
+            ✅ Recevoir nos offres exclusives
+
+            👉 [Lien vers l’espace client ou tableau de bord]
+
+            Besoin d’aide pour démarrer ? Consultez notre guide ici : [Lien vers un guide ou FAQ]
+            Ou contactez-nous directement à ${process.env.SUPPORT_EMAIL}.
+
+            À très bientôt,
+            L’équipe ()`);
+          Insert_user(
+            client,
+            { nom, prenom, email, role, password: hashedPassword, telephone },
+            (err, results) => {
+              if (err) {
+                client.end();
+                return res
+                  .status(500)
+                  .json({ message: "Erreur lors de l'inscription." });
+              }
               client.end();
-              return res
-                .status(500)
-                .json({ message: "Erreur lors de l'inscription." });
+              res.status(201).json({ message: "Inscription réussie." });
             }
-            client.end();
-            res.status(201).json({ message: "Inscription réussie." });
-          }
-        );
+          );
+        } catch (error) {
+          res.status(500).json({ message: "Erreur lors de l'envoi de l'email." });
+        }
       });
     } catch {
       client.end();
