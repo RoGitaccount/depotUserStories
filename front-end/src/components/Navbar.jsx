@@ -17,9 +17,11 @@ const Navbar = () => {
         {isAuthenticated ? (
           <li><button onClick={logout}>Déconnexion</button></li>
         ) : (
-          <li><Link to="/register">Inscription</Link></li>,
+          <>
+          <li><Link to="/register">Inscription</Link></li>
           <li><Link to="/login">Connexion</Link></li>
-        )}
+        </>
+              )}
       </ul>
     </nav>
   );

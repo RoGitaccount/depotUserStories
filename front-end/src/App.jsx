@@ -13,6 +13,7 @@ import Register from './components/register'
 import Dashboard from './pages/dashboard'
 import Login from './pages/login'
 import VerifyCodeLogin from './components/login-verifycode'
+import ResetPassword from './pages/resetpassword'
 import ForgotPassword from './components/forgot-password'
 
 
@@ -29,6 +30,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login/>} />
           <Route path="/register" element={<Register />} />
+          <Route path="/resetpassword" element={<ResetPassword/>} />
           <Route path="/verify-code" element={<VerifyCodeLogin />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Routes>
