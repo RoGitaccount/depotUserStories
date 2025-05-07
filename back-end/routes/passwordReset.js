@@ -46,7 +46,7 @@ router.post(
 
 
         // Envoyer le lien de réinitialisation par email
-        const resetLink = `http://localhost:8001/reset-password?token=${resetToken}`;
+        const resetLink = `http://localhost:5173/resetpassword?token=${resetToken}`;
         try {
           await sendEmail(user.email, 'Réinitialisation de mot de passe', `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`);
           res.status(200).json({ message: "Lien de réinitialisation envoyé. Veuillez vérifier votre email." });
@@ -64,32 +64,37 @@ router.post(
 router.post(
   "/reset-password",
   [
-    body("token").notEmpty().withMessage("Le champ 'token' est obligatoire."),
-    body("newPassword")
-      .isLength({ min: 8 })
-      .withMessage("Le mot de passe doit contenir au moins 8 caractères."),
+    body("token").notEmpty().withMessage("Le token est requis."),
+    body("newPassword").isLength({ min: 8 }).withMessage("Le mot de passe doit comporter au moins 8 caractères."),
   ],
   validateRequest,
   async (req, res) => {
     const { token, newPassword } = req.body;
-
+    
     try {
+      // Vérification du token
       const decoded = jwt.verify(token, secret_key);
+      
+      const userId = decoded.id;
+      
+      // Mise à jour du mot de passe
       const client = getConnection();
-
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const hashedPassword = await bcrypt.hash(newPassword, 10); // Hash du mot de passe
 
       const query = "UPDATE users SET mdp = ? WHERE id_user = ?";
-      client.query(query, [hashedPassword, decoded.id], (err, results) => {
+      client.query(query, [hashedPassword, userId], (err, result) => {
         if (err) {
           return res.status(500).json({ message: "Erreur lors de la réinitialisation du mot de passe." });
         }
+
         res.status(200).json({ message: "Mot de passe réinitialisé avec succès." });
       });
-    } catch (err) {
+    } catch (error) {
       res.status(400).json({ message: "Token invalide ou expiré." });
     }
   }
 );
+
+
 
 export default router;

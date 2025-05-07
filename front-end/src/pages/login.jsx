@@ -28,19 +28,21 @@ export default function Login() {
         email: values.email,
         password: values.password,
       };
-
-      // Appel à l'API de connexion
+  
       const response = await axios.post('http://localhost:8001/api/login', payload, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
-
+  
       console.log('Réponse serveur :', response.data);
-      alert('Connexion réussie !');
-      resetForm();
-      // Redirection vers le tableau de bord après la connexion réussie
-      navigate('/dashboard');
+      alert('Code envoyé par email. Veuillez vérifier votre boîte mail.');
+  
+      // Stocke l'email dans le localStorage pour le récupérer sur la page /verify-code
+      localStorage.setItem('emailToVerify', values.email);
+  
+      // Redirige vers la page de saisie du code
+      navigate('/verify-code');
     } catch (error) {
       console.error('Erreur API :', error.response?.data || error.message);
       alert(error.response?.data?.message || 'Erreur lors de la connexion.');
@@ -48,6 +50,8 @@ export default function Login() {
       setSubmitting(false);
     }
   };
+  ``
+  
 
   return (
     <div className="min-h-screen flex flex-col justify-between">

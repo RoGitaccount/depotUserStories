@@ -1,37 +1,42 @@
-// import Offers from './components/offer';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext';
 
-// function App() {
-//   return (
-//     <div className="App">
-//       <Offers />
-//     </div>
-//   );
-// }
-
-// export default App;
-
-
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+// Components //
+import Navbar from './components/Navbar';
 import Offers from './components/offer'
 import CategoryList from './components/category'
 import Register from './components/register'
-import Login from './components/login'
+
+// Page //
+
+import Dashboard from './pages/dashboard'
+import Login from './pages/login'
+import VerifyCodeLogin from './components/login-verifycode'
+import ResetPassword from './pages/resetpassword'
 import ForgotPassword from './components/forgot-password'
 
 
 function App() {
   return (
+
+  <AuthProvider>
     <Router>
-      <div className="App"> <nav> <Link to="/">Promotions</Link> | <Link to="/categories">Catégories</Link>  | <Link to="/register">Inscription</Link> | <Link to="/login">Connexion</Link> </nav>
+      <Navbar />
         <Routes>
-          <Route path="/" element={<Offers />} />
+        
+          <Route path="/promotions" element={<Offers/>} />
           <Route path="/categories" element={<CategoryList />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/login" element={<Login/>} />
           <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/resetpassword" element={<ResetPassword/>} />
+          <Route path="/verify-code" element={<VerifyCodeLogin />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Routes>
-      </div>
     </Router>
+  </AuthProvider>
+
 ) }
 
 export default App
