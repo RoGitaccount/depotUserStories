@@ -7,10 +7,10 @@ import axios from 'axios'; // ← Import d'Axios
 export default function Inscription() {
   // Définir le schéma de validation Yup
   const validationSchema = Yup.object({
-    nom: Yup.string()
-      .required('Le nom est requis.'),
     prenom: Yup.string()
       .required('Le prénom est requis.'),
+    nom: Yup.string()
+      .required('Le nom est requis.'),
     email: Yup.string()
       .email('Format d\'email invalide.')
       .required('L\'email est requis.'),
@@ -26,8 +26,8 @@ export default function Inscription() {
   });
 
   const initialValues = {
-    nom: '',
     prenom: '',
+    nom: '',
     email: '',
     password: '',
     telephone: '',
@@ -39,8 +39,8 @@ export default function Inscription() {
   const onSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
       const payload = {
-        nom: values.nom,
         prenom: values.prenom,
+        nom: values.nom,
         email: values.email,
         password: values.password,
         telephone: values.telephone?.replace(/\s/g, '') || undefined,
@@ -100,13 +100,13 @@ export default function Inscription() {
               <h2 className="text-center text-xl font-semibold">Inscription</h2>
 
               <div>
-                <Field name="nom" placeholder="Nom" className="border w-full p-2" />
-                <ErrorMessage name="nom" component="p" className="text-red-500 text-sm" />
+                <Field name="prenom" placeholder="Prénom" className="border w-full p-2" />
+                <ErrorMessage name="prenom" component="p" className="text-red-500 text-sm" />
               </div>
 
               <div>
-                <Field name="prenom" placeholder="Prénom" className="border w-full p-2" />
-                <ErrorMessage name="prenom" component="p" className="text-red-500 text-sm" />
+                <Field name="nom" placeholder="Nom" className="border w-full p-2" />
+                <ErrorMessage name="nom" component="p" className="text-red-500 text-sm" />
               </div>
 
               <div>
