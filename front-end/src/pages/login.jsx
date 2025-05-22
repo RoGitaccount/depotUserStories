@@ -27,16 +27,14 @@ export default function Login() {
         email: values.email,
         password: values.password,
       };
-
       const response = await axios.post('http://localhost:8001/api/login', payload, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
-
+  
       console.log('Réponse serveur :', response.data);
       alert('Code envoyé par email. Veuillez vérifier votre boîte mail.');
-
       // Stocke l'email dans le localStorage pour le récupérer sur la page /verify-code
       localStorage.setItem('emailToVerify', values.email);
   
@@ -49,6 +47,8 @@ export default function Login() {
       setSubmitting(false);
     }
   };
+  ``
+  
 
   return (
     <div className="min-h-screen flex flex-col justify-between">

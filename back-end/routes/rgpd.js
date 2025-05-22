@@ -200,8 +200,6 @@ router.delete("/del/:id_user", (req, res) => {
 
 export default router;
 
-
-
 // const router = express.Router();
 
 // // GET - Exporter les données personnelles en PDF (avec authenticateToken)
