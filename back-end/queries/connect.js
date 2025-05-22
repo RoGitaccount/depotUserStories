@@ -40,6 +40,4 @@ function getConnection() {
   return connection;
 }
 
-
-
 export {getConnection};

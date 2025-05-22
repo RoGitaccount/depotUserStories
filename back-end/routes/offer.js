@@ -221,4 +221,54 @@ router.patch(
   }
 );
 
+// Vérifie si l'utilisateur a déjà utilisé un code promo
+router.get(
+  "/verify/:code_promo",
+  // authenticateToken, // il faut savoir qui est connecté !
+  [param("code_promo").notEmpty().withMessage("Code promo requis.")],
+  validateRequest,
+  async (req, res) => {
+    const client = getConnection();
+    const { code_promo } = req.params;
+    const user_id = 1;
+    // req.user.id; // grâce à authenticateToken
+
+    
+    try {
+      // 1. D'abord récupérer l'ID de la promotion à partir du code
+      PromotionQueries.Get_offer_by_code(client, code_promo, (err, promotion) => {
+        if (err) {
+          client.end();
+          return res.status(500).json({ error: "Erreur serveur" });
+        }
+        if (!promotion) {
+          client.end();
+          return res.status(404).json({ error: "Code promo invalide ou expiré" });
+        }
+
+        // 2. Ensuite vérifier si l'utilisateur l'a déjà utilisé
+        PromotionQueries.Has_user_used_offer(client, user_id, promotion.id_promotion, (err, hasUsed) => {
+          client.end();
+          if (err) {
+            return res.status(500).json({ error: "Erreur serveur" });
+          }
+          if (hasUsed) {
+            return res.status(400).json({ error: "Vous avez déjà utilisé ce code promo" });
+          }
+          
+          // 3. Code valide et non utilisé
+          res.json({ 
+            valid: true,
+            promotion: promotion
+          });
+        });
+      });
+    } catch (error) {
+      console.error('Erreur:', error);
+      client.end();
+      res.status(500).json({ error: "Erreur serveur" });
+    }
+  }
+);
+
 export default router;

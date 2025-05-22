@@ -103,6 +103,7 @@ router.delete(
         if (err) {
           client.end();
           return res.status(500).json({ message: "Erreur lors de la suppression de l'avis." });
+          console.error(err);
         }
         client.end();
         res.status(200).json({ message: "Avis supprimé avec succès." });

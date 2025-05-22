@@ -34,3 +34,12 @@ export function GetUserByEmail(client, email, callback) {
   });
 }
 
+export function Update_user_phone(client, id_user, telephone, callback) {
+  const query = `
+    UPDATE users SET
+    telephone = COALESCE(?, telephone)
+    WHERE id_user = ?
+  `;
+  client.query(query, [telephone, id_user], callback);
+}
+

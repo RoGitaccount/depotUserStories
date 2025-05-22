@@ -5,9 +5,95 @@ import validateRequest from "../middlewares/validateRequest.js";
 import { updateLastActivity } from "../middlewares/updateLastActivity.js";
 import { getConnection } from "../queries/connect.js";
 import PDFDocument from "pdfkit";
+import {Get_billing_info} from "../queries/payment.js"
+
+import { Upsert_billing_info } from "../queries/payment.js";
+import { Update_user_phone } from "../queries/User.js";
 
 
 const router = express.Router();
+
+router.post("/update_billing_data/:id_user", (req, res) => {
+  const { id_user } = req.params;
+  const {
+    telephone,
+    nomEntreprise: nom_entreprise,
+    numeroTva: numero_tva,
+    adresse: adresse_ligne1,
+    complementAdresse: adresse_ligne2,
+    ville,
+    region,
+    codePostal: code_postal,
+    pays
+  } = req.body;
+
+  const client = getConnection();
+
+  console.log("Début de la transaction pour l'utilisateur :", id_user);
+  console.log("Données reçues :", req.body);
+
+  // Démarrer la transaction
+  client.beginTransaction((transactionErr) => {
+    if (transactionErr) {
+      console.error("Erreur lors du démarrage de la transaction :", transactionErr);
+      client.end();
+      return res.status(500).json({ message: "Erreur lors du démarrage de la transaction." });
+    }
+
+    // Mise à jour du téléphone
+    Update_user_phone(client, id_user, telephone, (phoneErr) => {
+      if (phoneErr) {
+        console.error("Erreur mise à jour téléphone :", phoneErr);
+        return client.rollback(() => {
+          client.end();
+          res.status(500).json({ message: "Erreur lors de la mise à jour du téléphone." });
+        });
+      }
+
+      console.log("Téléphone mis à jour avec succès");
+
+      // Mise à jour des informations de facturation
+      Upsert_billing_info(client, {
+        id_user,
+        nom_entreprise,
+        numero_tva,
+        adresse_ligne1,
+        adresse_ligne2,
+        ville,
+        region,
+        code_postal,
+        pays
+      }, (billingErr) => {
+        if (billingErr) {
+          console.error("Erreur mise à jour facturation :", billingErr);
+          return client.rollback(() => {
+            client.end();
+            res.status(500).json({ message: "Erreur lors de la mise à jour de la facturation." });
+          });
+        }
+
+        console.log("Informations de facturation mises à jour avec succès");
+
+        // Commit de la transaction
+        client.commit((commitErr) => {
+          if (commitErr) {
+            console.error("Erreur lors du commit :", commitErr);
+            return client.rollback(() => {
+              client.end();
+              res.status(500).json({ message: "Erreur lors de la finalisation de la transaction." });
+            });
+          }
+
+          console.log("Transaction réussie pour l'utilisateur :", id_user);
+          client.end();
+          res.status(200).json({ message: "Informations mises à jour avec succès." });
+        });
+      });
+    });
+  });
+});
+
+
 
 //la partie du code commenté en dessous s'utilise avec le middleware "authenticateToken" (necessitant la 2FA )
 //celui du dessus qui a été presenté vendredi utilise le param de l'url pour réaliser les requete(cela sera supprimé à l'avenir)
@@ -54,6 +140,23 @@ router.get("/get/:id_user", (req, res) => {
     if (results.length === 0) return res.status(404).json({ message: "Utilisateur introuvable." });
     res.status(200).json(results[0]);
   });
+});
+
+//GET - Récupérer les informations de facturation
+router.get("/get_billing_info/:id_user", async (req, res) => {
+  const client = getConnection();
+  const { id_user } = req.params;
+  
+  try {
+    Get_billing_info(client, id_user, (err, results) => {
+      client.end();
+      if (err) return res.status(500).json({ message: "Erreur lors de la récupération des informations." });
+      res.status(200).json(results);
+    });
+  } catch (error) {
+    client.end();
+    res.status(500).json({ message: "Erreur serveur." });
+  }
 });
 
 // PUT - Mise à jour des infos

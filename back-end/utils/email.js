@@ -33,12 +33,16 @@ async function sendEmail(to, subject, text) {
     // });
 
     const transporter = nodemailer.createTransport({
-      host: "vps-f2442ff7.vps.ovh.net",
+      host: "smtp.hostinger.com",
       port: 465,
       secure: true, // true pour le port 465
       auth: {
         user: process.env.EMAIL_USER, // votre adresse email OVH
         pass: process.env.EMAIL_PASSWORD // votre mot de passe email OVH
+      },
+      tls: {
+        rejectUnauthorized: false, // Permet de contourner certains certificats SSL non validés
+        minVersion: "TLSv1.3", // Pour garantir que la version minimale de TLS est la 1.2
       },
     });
 
@@ -47,11 +51,14 @@ async function sendEmail(to, subject, text) {
       to,
       subject,
       text,
+      headers: {
+        'Return-Path': process.env.SUPPORT_EMAIL
+      }
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", result);
-    return result;
+    console.log("Email envoyé:", result);
+    return;
   } catch (error) {
     console.error("Error sending email:", error);
     throw error;

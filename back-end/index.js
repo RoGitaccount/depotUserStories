@@ -11,6 +11,10 @@ import categoryRouter from "./routes/category.js"
 import productCategoryRouter from "./routes/productCategory.js";
 import rgpdRouter from "./routes/rgpd.js"
 
+import stripeRouter from './routes/stripe.js';
+import cartRouter from './routes/cart.js';
+import orderRouter from './routes/order.js';
+import wishlistRouter from './routes/wishlist.js';
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
@@ -48,7 +52,6 @@ const options = {
 const swaggerSpec = swaggerJSDoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-
 // Middleware pour analyser les corps de requêtes en JSON
 app.use(express.json());
 
@@ -63,7 +66,12 @@ app.use("/api/category", categoryRouter);
 app.use("/api/rgpd", rgpdRouter);
 app.use("/api/productCategory", productCategoryRouter);
 
-app.get("/", (req, res) => res.send("Test"));
+app.use('/api/stripe', stripeRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api/order", orderRouter);
+app.use("/api/wishlist", wishlistRouter);
+
+app.get("/", (req, res) => res.send('<a href="http://localhost:8001/api-docs/" target="_blank">lien pour tester les divers routes</a> '));
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

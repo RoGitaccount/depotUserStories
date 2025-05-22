@@ -36,45 +36,21 @@ export function Get_products_of_category(client, id_categorie, callback) {
 }
 
 export function Update_product(client, data, callback) {
-  const { id_produit, titre, description, prix, stock } = data;
+  const { id_produit, titre, description, prix } = data;
 
-  const fields = [];
-  const values = [];
-
-  if (titre !== undefined) {
-    fields.push("titre = ?");
-    values.push(titre);
-  }
-  if (description !== undefined) {
-    fields.push("description = ?");
-    values.push(description);
-  }
-  if (prix !== undefined) {
-    fields.push("prix = ?");
-    values.push(prix);
-  }
-  if (stock !== undefined) {
-    fields.push("stock = ?");
-    values.push(stock);
-  }
-
-  // Toujours mettre à jour la date de modification
-  fields.push("date_modification = NOW()");
-
-  if (fields.length === 1) {
-    return callback(null, { message: "Aucune donnée à mettre à jour." });
-  }
-
-  const sql = `
-    UPDATE produits
-    SET ${fields.join(", ")}
+  const query = `
+    UPDATE produits SET
+      titre = COALESCE(?, titre),
+      description = COALESCE(?, description),
+      prix = COALESCE(?, prix),
+      date_modification = NOW()
     WHERE id_produit = ?
   `;
-  values.push(id_produit);
 
-  client.query(sql, values, callback);
+  const values = [titre, description, prix, id_produit];
+
+  client.query(query, values, callback);
 }
-
 
 export function Delete_product(client, id_produit, callback) {
   const sql = "DELETE FROM produits WHERE id_produit = ?";

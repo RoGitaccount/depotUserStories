@@ -1,13 +1,12 @@
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import axios from 'axios'; // ← Import d'Axios
-import { useNavigate } from 'react-router-dom';  // Pour rediriger après la connexion réussie
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-  const navigate = useNavigate();  // Pour la redirection après connexion
+  const navigate = useNavigate();
 
-  // Définir le schéma de validation Yup
   const validationSchema = Yup.object({
     email: Yup.string()
       .email('Format d\'email invalide.')
@@ -22,14 +21,13 @@ export default function Login() {
     password: '',
   };
 
-  const onSubmit = async (values, { setSubmitting, resetForm }) => {
+  const onSubmit = async (values, { setSubmitting }) => {
     try {
       const payload = {
         email: values.email,
         password: values.password,
       };
 
-      // Appel à l'API de connexion
       const response = await axios.post('http://localhost:8001/api/login', payload, {
         headers: {
           'Content-Type': 'application/json',
@@ -37,10 +35,13 @@ export default function Login() {
       });
 
       console.log('Réponse serveur :', response.data);
-      alert('Connexion réussie !');
-      resetForm();
-      // Redirection vers le tableau de bord après la connexion réussie
-      navigate('/dashboard');
+      alert('Code envoyé par email. Veuillez vérifier votre boîte mail.');
+
+      // Stocke l'email dans le localStorage pour le récupérer sur la page /verify-code
+      localStorage.setItem('emailToVerify', values.email);
+  
+      // Redirige vers la page de saisie du code
+      navigate('/verify-code');
     } catch (error) {
       console.error('Erreur API :', error.response?.data || error.message);
       alert(error.response?.data?.message || 'Erreur lors de la connexion.');
@@ -97,7 +98,6 @@ export default function Login() {
                 {isSubmitting ? 'En cours...' : "Se connecter"}
               </button>
 
-              {/* Lien mot de passe oublié */}
               <div className="text-center mt-4">
                 <a href="/forgot-password" className="text-blue-500 hover:underline">
                   Mot de passe oublié ?

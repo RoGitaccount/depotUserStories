@@ -1,11 +1,3 @@
-// CREATE TABLE promotions (
-//   id_promotion INT AUTO_INCREMENT PRIMARY KEY,
-//   code VARCHAR(50) UNIQUE,
-//   montant_reduction DECIMAL(10, 2),
-//   date_expiration DATETIME,
-//   est_actif BOOLEAN DEFAULT FALSE //modification TRUE à FALSE
-// ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 // Ajouter une promotions
 export function Insert_offer(client, { code, montant_reduction, date_expiration, est_actif}, callback) {
   const query = "INSERT INTO promotions (code, montant_reduction, date_expiration, est_actif) VALUES (?, ?, ?, ?)";
@@ -122,3 +114,72 @@ export function Delete_offer(client, id_promotion, callback) {
   });
 }
 
+// __________nouvel ajout_________________
+
+// Enregistrer l'utilisation d'un code promo par un utilisateur
+export function Record_offer_usage(client, id_user, id_promotion, callback) {
+  console.log('Tentative d\'enregistrement:', { id_user, id_promotion });
+  const query = `
+    INSERT INTO utilisations_promotions (id_user, id_promotion)
+    VALUES (?, ?)
+  `;
+  client.query(query, [id_user, id_promotion], (err, results) => {
+    if (err) {
+      console.error('Erreur SQL:', err);
+      return callback(err);
+    }
+    console.log('Enregistrement réussi:', results);
+    callback(null, results);
+  });
+}
+
+// Vérifier si un utilisateur a déjà utilisé un code promo (retourne 1 s'il est présent) 
+export function Has_user_used_offer(client, id_user, id_promotion, callback) {
+  const query = `
+    SELECT 1 FROM utilisations_promotions
+    WHERE id_user = ? AND id_promotion = ?
+    LIMIT 1
+  `;
+  client.query(query, [id_user, id_promotion], (err, results) => {
+    if (err) {
+      return callback(err, null);
+    }
+    callback(null, results.length > 0); // true = déjà utilisé
+  });
+}
+
+// Récupérer les codes promo déjà utilisés par un utilisateur
+export function Get_used_offers_by_user(client, id_user, callback) {
+  const query = `
+    SELECT p.code, p.montant_reduction, up.date_utilisation
+    FROM utilisations_promotions up
+    JOIN promotions p ON up.id_promotion = p.id_promotion
+    WHERE up.id_user = ?
+    ORDER BY up.date_utilisation DESC
+  `;
+  client.query(query, [id_user], (err, results) => {
+    if (err) {
+      return callback(err, null);
+    }
+    callback(null, results);
+  });
+}
+
+// Si une commande est annulée,suppression de l’utilisation de la promotion associée
+export function Delete_offer_usage(client, id_user, id_promotion, callback) {
+  const sql = `DELETE FROM utilisations_promotions WHERE id_user = ? AND id_promotion = ?`;
+  client.query(sql, [id_user, id_promotion], callback);
+}
+
+// Récupérer toutes les promos disponibles pour un utilisateur (non utilisées, actives et non expirées)
+export function Get_available_offers_for_user(client, id_user, callback) {
+  const sql = `
+    SELECT * FROM promotions p
+    WHERE est_actif = TRUE
+      AND date_expiration > NOW()
+      AND id_promotion NOT IN (
+        SELECT id_promotion FROM utilisations_promotions WHERE id_user = ?
+      )
+  `;
+  client.query(sql, [id_user], callback);
+}
