@@ -2311,3 +2311,420 @@ paths:
                   message:
                     type: string
                     example: "Erreur lors du remplacement."
+
+
+## Gestion des Paiements(Stripe) ##
+/api/stripe/create-checkout-session:
+  post:
+    summary: Créer une session de paiement Stripe
+    description: Initialise une session de paiement Stripe à partir du panier et des informations de facturation.
+    tags:
+      - Paiement
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - cartItems
+              - totalAmount
+              - initialAmount
+              - billingInfo
+            properties:
+              cartItems:
+                type: array
+                items:
+                  type: object
+                description: Liste des articles dans le panier
+              totalAmount:
+                type: number
+                format: float
+                description: Montant final de la commande (en euros)
+                example: 79.99
+              initialAmount:
+                type: number
+                format: float
+                description: Montant initial avant réduction (en euros)
+                example: 99.99
+              promoCode:
+                type: string
+                description: Code promo utilisé, s'il y en a un
+                example: "PROMO20"
+              billingInfo:
+                type: object
+                required:
+                  - email
+                properties:
+                  email:
+                    type: string
+                    format: email
+                    description: Email du client
+                    example: "client@example.com"
+                description: Informations de facturation du client
+              id_promotion:
+                type: integer
+                nullable: true
+                description: ID de la promotion appliquée, si applicable
+                example: 4
+    responses:
+      '200':
+        description: URL de session Stripe créée avec succès
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: "https://checkout.stripe.com/pay/cs_test_1234567890abcdef"
+      '400':
+        description: Requête invalide
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Paramètres manquants ou incorrects."
+      '500':
+        description: Erreur serveur lors de la création de la session Stripe
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Erreur lors de la création de la session de paiement"
+
+/api/order/process-success:
+  post:
+    summary: Finaliser une commande après succès Stripe
+    description: Traite la session de paiement Stripe réussie, enregistre la commande, les paiements, applique les promotions, génère la facture PDF, et vide le panier.
+    tags:
+      - Paiement
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - sessionId
+            properties:
+              sessionId:
+                type: string
+                description: ID de la session Stripe
+                example: "cs_test_a1B2c3D4e5F6g7H8"
+    responses:
+      '200':
+        description: Commande traitée avec succès
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+      '400':
+        description: Requête invalide
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Session ID manquant"
+      '500':
+        description: Erreur lors du traitement de la commande
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Erreur lors du traitement de la commande"
+
+## Gestion du panier ##
+/api/cart:
+  get:
+    summary: Récupérer le panier de l'utilisateur
+    description: Renvoie la liste des produits dans le panier de l'utilisateur actuellement connecté.
+    tags:
+      - Panier
+    responses:
+      '200':
+        description: Liste des produits dans le panier
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id_produit:
+                    type: integer
+                  titre:
+                    type: string
+                  prix:
+                    type: number
+                    format: float
+                  quantite:
+                    type: integer
+      '500':
+        description: Erreur lors de la récupération du panier
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Erreur lors de la récupération du panier"
+
+/api/cart/delete/{id_produit}:
+  delete:
+    summary: Supprimer un produit du panier
+    description: Supprime un produit spécifique du panier de l'utilisateur.
+    tags:
+      - Panier
+    parameters:
+      - in: path
+        name: id_produit
+        required: true
+        schema:
+          type: integer
+        description: ID du produit à supprimer du panier
+    responses:
+      '200':
+        description: Produit supprimé avec succès
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Produit supprimé du panier avec succès"
+      '400':
+        description: Paramètre invalide
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                errors:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      msg:
+                        type: string
+      '500':
+        description: Erreur serveur lors de la suppression du produit
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Erreur lors de la suppression de l'article du panier"
+
+/api/cart/clear:
+  delete:
+    summary: Vider le panier
+    description: Supprime tous les produits du panier de l'utilisateur.
+    tags:
+      - Panier
+    responses:
+      '200':
+        description: Panier vidé avec succès
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Panier vidée avec succès"
+      '500':
+        description: Erreur serveur lors de la suppression du panier
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Erreur lors de la suppresion du panier"
+
+## Gestion de la wishlist ##
+/api/wishlist:
+  get:
+    summary: Récupérer la wishlist de l'utilisateur
+    description: Renvoie les produits ajoutés à la wishlist de l'utilisateur connecté.
+    tags:
+      - Wishlist
+    responses:
+      '200':
+        description: Liste des produits dans la wishlist
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id_produit:
+                    type: integer
+                  titre:
+                    type: string
+                  prix:
+                    type: number
+                    format: float
+      '500':
+        description: Erreur serveur lors de la récupération de la wishlist
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Erreur lors de la récupération de la wishlist"
+
+/api/wishlist/add/{id_produit}:
+  post:
+    summary: Ajouter un produit à la wishlist
+    description: Ajoute un produit spécifique à la wishlist de l'utilisateur.
+    tags:
+      - Wishlist
+    parameters:
+      - in: path
+        name: id_produit
+        required: true
+        schema:
+          type: integer
+        description: ID du produit à ajouter à la wishlist
+    responses:
+      '200':
+        description: Produit ajouté avec succès
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Produit ajouté à la wishlist avec succès"
+      '400':
+        description: Paramètre invalide
+      '500':
+        description: Erreur serveur lors de l'ajout du produit
+
+/api/wishlist/delete/{id_produit}:
+  delete:
+    summary: Supprimer un produit de la wishlist
+    description: Supprime un produit spécifique de la wishlist de l'utilisateur.
+    tags:
+      - Wishlist
+    parameters:
+      - in: path
+        name: id_produit
+        required: true
+        schema:
+          type: integer
+        description: ID du produit à supprimer de la wishlist
+    responses:
+      '200':
+        description: Produit supprimé avec succès
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Produit supprimé de la wishlist avec succès"
+      '400':
+        description: Paramètre invalide
+      '500':
+        description: Erreur serveur lors de la suppression
+
+/api/wishlist/clear:
+  delete:
+    summary: Vider la wishlist
+    description: Supprime tous les produits de la wishlist de l'utilisateur connecté.
+    tags:
+      - Wishlist
+    responses:
+      '200':
+        description: Wishlist supprimée avec succès
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Wishlist supprimée avec succès"
+      '500':
+        description: Erreur serveur lors de la suppression
+
+/api/wishlist/add_to_cart/{id_produit}:
+  post:
+    summary: Ajouter un produit de la wishlist au panier
+    description: Ajoute un produit de la wishlist directement dans le panier.
+    tags:
+      - Wishlist
+      - Panier
+    parameters:
+      - in: path
+        name: id_produit
+        required: true
+        schema:
+          type: integer
+        description: ID du produit à ajouter au panier
+    responses:
+      '200':
+        description: Produit ajouté au panier avec succès
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Produit ajouté au panier avec succès"
+      '400':
+        description: Paramètre invalide
+      '500':
+        description: Erreur serveur lors de l'ajout
+
+/api/wishlist/add_all_to_cart:
+  post:
+    summary: Ajouter tous les produits de la wishlist au panier
+    description: Ajoute tous les produits de la wishlist dans le panier de l'utilisateur.
+    tags:
+      - Wishlist
+      - Panier
+    responses:
+      '200':
+        description: Tous les produits ont été ajoutés au panier avec succès
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Tous les produits ajoutés au panier avec succès"
+      '500':
+        description: Erreur serveur lors de l'ajout
