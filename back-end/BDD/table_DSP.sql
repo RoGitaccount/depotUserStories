@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS produits (
     prix DECIMAL(10, 2) NOT NULL, -- prix actuel du produit
     image_url VARCHAR(255),
     date_creation DATETIME DEFAULT CURRENT_TIMESTAMP,
-    date_modification DATETIME ON UPDATE CURRENT_TIMESTAMP
+    date_modification DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- avis
