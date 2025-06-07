@@ -35,8 +35,8 @@ router.get("/", async (req, res) => {
 
 router.post(
   "/add",
-  // authenticateToken,
-  // isAdmin,
+  authenticateToken,
+  isAdmin,
   [
     body("nom_categorie").notEmpty().withMessage("le nom de la catégorie est necessaire"),
     body("description").optional().isString().withMessage("la description doit etre une chaîne de caractère")
@@ -93,8 +93,8 @@ router.get(
 // Modifier une catégorie (admin)
 router.put(
   "/update/:id_categorie",
-  // authenticateToken,
-  // isAdmin,
+  authenticateToken,
+  isAdmin,
   [
     param("id_categorie").isInt().withMessage("'id_categorie' doit être un entier."),
     body("nom_categorie").notEmpty().withMessage("Le champ 'nom_categorie' est requis."),
@@ -125,8 +125,8 @@ router.put(
 // Supprimer une catégorie (admin)
 router.delete(
   "/delete/:id_categorie",
-  // authenticateToken,
-  // isAdmin,
+  authenticateToken,
+  isAdmin,
   [param("id_categorie").isInt().withMessage("'id_categorie' doit être un entier.")],
   validateRequest,
   async (req, res) => {

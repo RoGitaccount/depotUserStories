@@ -26,9 +26,15 @@ const SuccessPage = () => {
         }
 
         // Appeler le backend pour traiter la commande
-        await axios.post('http://localhost:8001/api/order/process-success', {
-          sessionId
-        });
+        await axios.post(
+          'http://localhost:8001/api/order/process-success',
+          { sessionId },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          }
+        );
 
         setLoading(false);
         
@@ -60,6 +66,13 @@ const SuccessPage = () => {
       <div className="success-page error">
         <h1>Erreur</h1>
         <p>{error}</p>
+        <p>
+        <strong> votre paiement a bien été validé par notre prestataire mais n’a pas pu être enregistré dans notre système.</strong>
+        <br />
+        <strong>Un remboursement automatique sera effectué sous peu.</strong>
+        <br />
+        Merci de vous reconnecter et de réessayer, ou contactez le support si besoin.
+      </p>
       </div>
     );
   }

@@ -32,10 +32,10 @@ export default function Dashboard() {
     }
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
+  // const handleLogout = () => {
+  //   localStorage.removeItem("token");
+  //   navigate("/login");
+  // };
 
   if (!user) {
     return <div className="text-center mt-10">Chargement du tableau de bord...</div>;
@@ -52,12 +52,12 @@ export default function Dashboard() {
         <p className="mb-2"><strong>Téléphone :</strong> {user.tel}</p>
         <p className="mb-4"><strong>Rôle :</strong> {roleLabels[user.role] || user.role} </p>
 
-        <button
+        {/* <button
           onClick={handleLogout}
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
         >
           Se déconnecter
-        </button>
+        </button> */}
       </div>
     </div>
   );

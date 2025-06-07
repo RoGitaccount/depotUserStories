@@ -29,69 +29,31 @@ router.post("/update_billing_data/:id_user", (req, res) => {
 
   const client = getConnection();
 
-  console.log("Début de la transaction pour l'utilisateur :", id_user);
+  console.log("Début de la requete pour l'utilisateur :", id_user);
   console.log("Données reçues :", req.body);
 
-  // Démarrer la transaction
-  client.beginTransaction((transactionErr) => {
-    if (transactionErr) {
-      console.error("Erreur lors du démarrage de la transaction :", transactionErr);
-      client.end();
-      return res.status(500).json({ message: "Erreur lors du démarrage de la transaction." });
-    }
-
-    // Mise à jour du téléphone
-    Update_user_phone(client, id_user, telephone, (phoneErr) => {
-      if (phoneErr) {
-        console.error("Erreur mise à jour téléphone :", phoneErr);
-        return client.rollback(() => {
-          client.end();
-          res.status(500).json({ message: "Erreur lors de la mise à jour du téléphone." });
-        });
+  // Mise à jour des informations de facturation
+  Upsert_billing_info(client, {
+    id_user,
+    nom_entreprise,
+    numero_tva,
+    adresse_ligne1,
+    adresse_ligne2,
+    ville,
+    region,
+    code_postal,
+    pays,
+    telephone
+  }, (billingErr) => {
+    client.end();
+    if (billingErr) {
+      console.error("Erreur mise à jour facturation :", billingErr);
+      return res.status(500).json({ message: "Erreur lors de la mise à jour de la facturation." });
       }
-
-      console.log("Téléphone mis à jour avec succès");
-
-      // Mise à jour des informations de facturation
-      Upsert_billing_info(client, {
-        id_user,
-        nom_entreprise,
-        numero_tva,
-        adresse_ligne1,
-        adresse_ligne2,
-        ville,
-        region,
-        code_postal,
-        pays
-      }, (billingErr) => {
-        if (billingErr) {
-          console.error("Erreur mise à jour facturation :", billingErr);
-          return client.rollback(() => {
-            client.end();
-            res.status(500).json({ message: "Erreur lors de la mise à jour de la facturation." });
-          });
-        }
-
-        console.log("Informations de facturation mises à jour avec succès");
-
-        // Commit de la transaction
-        client.commit((commitErr) => {
-          if (commitErr) {
-            console.error("Erreur lors du commit :", commitErr);
-            return client.rollback(() => {
-              client.end();
-              res.status(500).json({ message: "Erreur lors de la finalisation de la transaction." });
-            });
-          }
-
-          console.log("Transaction réussie pour l'utilisateur :", id_user);
-          client.end();
-          res.status(200).json({ message: "Informations mises à jour avec succès." });
-        });
-      });
-    });
+      res.status(200).json({ message: "Informations mises à jour avec succès." });
   });
 });
+
 
 
 
@@ -102,7 +64,7 @@ router.post("/update_billing_data/:id_user", (req, res) => {
 // GET - Exporter les données personnelles en PDF
 router.get("/export/test/:id_user", (req, res) => {
   const client = getConnection();
-  const query = "SELECT nom, prenom, email, telephone FROM users WHERE id_user = ?";
+  const query = "SELECT nom, prenom, email FROM users WHERE id_user = ?"; 
 
   client.query(query, [req.params.id_user], (err, results) => {
     if (err){
@@ -125,7 +87,6 @@ router.get("/export/test/:id_user", (req, res) => {
     doc.fontSize(12).text(`Nom : ${user.nom}`);
     doc.text(`Prénom : ${user.prenom}`);
     doc.text(`Email : ${user.email}`);
-    doc.text(`Téléphone : ${user.telephone || "Non renseigné"}`);
 
     doc.end();
   });
@@ -134,7 +95,7 @@ router.get("/export/test/:id_user", (req, res) => {
 // GET - Récupérer les infos personnelles
 router.get("/get/:id_user", (req, res) => {
   const client = getConnection();
-  const query = "SELECT nom, prenom, email, telephone FROM users WHERE id_user = ?";
+  const query = "SELECT nom, prenom, email FROM users WHERE id_user = ?";
   client.query(query, [req.params.id_user], (err, results) => {
     if (err) return res.status(500).json({ message: "Erreur serveur." });
     if (results.length === 0) return res.status(404).json({ message: "Utilisateur introuvable." });
@@ -166,22 +127,20 @@ router.put(
     body("nom").optional().isLength({ min: 1 }).withMessage("Le nom ne peut pas être vide."),
     body("prenom").optional().isLength({ min: 1 }).withMessage("Le prénom ne peut pas être vide."),
     body("email").optional().isEmail().withMessage("Email invalide."),
-    body("telephone").optional().isLength({ min: 8 }).withMessage("Téléphone invalide."),
   ],
   validateRequest,
   (req, res) => {
     const client = getConnection();
-    const { nom, prenom, email, telephone } = req.body;
+    const { nom, prenom, email } = req.body;
 
     const query = `
       UPDATE users 
       SET nom = COALESCE(?, nom),
           prenom = COALESCE(?, prenom),
           email = COALESCE(?, email),
-          telephone = COALESCE(?, telephone)
       WHERE id_user = ?`;
 
-    client.query(query, [nom, prenom, email, telephone, req.params.id_user], (err, result) => {
+    client.query(query, [nom, prenom, email, req.params.id_user], (err, result) => {
       if (err) return res.status(500).json({ message: "Erreur lors de la mise à jour." });
       res.status(200).json({ message: "Données personnelles mises à jour avec succès." });
     });
@@ -269,14 +228,14 @@ export default router;
 //   }
 // );
 
-// // DELETE - Suppression du compte (avec authenticateToken)
-// router.delete("/me", authenticateToken,updateLastActivity, (req, res) => {
-//   const client = getConnection();
-//   const query = "DELETE FROM users WHERE id_user = ?";
-//   client.query(query, [req.user.id], (err, result) => {
-//     if (err) return res.status(500).json({ message: "Erreur lors de la suppression." });
-//     res.status(200).json({ message: "Compte utilisateur supprimé avec succès." });
-//   });
-// });
+// DELETE - Suppression du compte (avec authenticateToken)
+router.delete("/me", authenticateToken,updateLastActivity, (req, res) => {
+  const client = getConnection();
+  const query = "DELETE FROM users WHERE id_user = ?";
+  client.query(query, [req.user.id], (err, result) => {
+    if (err) return res.status(500).json({ message: "Erreur lors de la suppression." });
+    res.status(200).json({ message: "Compte utilisateur supprimé avec succès." });
+  });
+});
 
 // export default router;

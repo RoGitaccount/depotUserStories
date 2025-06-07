@@ -5,15 +5,19 @@ import { param } from 'express-validator';
 import { Get_cart,Remove_from_cart,Clear_cart } from '../queries/cart.js';
 import {Add_to_wishlist,Remove_from_wishlist,Clear_wishlist,Get_user_wishlist} from '../queries/wishlist.js';
 import {Add_to_cart,Add_all_to_cart} from '../queries/cart.js';
+import { authenticateToken } from '../middlewares/authenticateToken.js';
 
 const router = express.Router();
 
 // afficher la wishlist d'un utilisateur
-router.get('/', async (req, res) => {
-  const client = getConnection();
-  const id_user = 1; // ID utilisateur en dur pour les tests
+router.get(
+  '/',
+  authenticateToken,
+  async (req, res) => {
+    const client = getConnection();
+    const id_user = req.user.id;
 
-  Get_user_wishlist(client, id_user, (err, results) => {
+    Get_user_wishlist(client, id_user, (err, results) => {
     client.end();
     if (err) {
       return res.status(500).json({ error: 'Erreur lors de la récupération de la wishlist' });
@@ -22,9 +26,10 @@ router.get('/', async (req, res) => {
   });
 });
 
-// mettre un produit de la wishlist dans le panier
+// mettre un produit de la wishlist dans le panier (à mettre dans cart.js)
 router.post(
   '/add_to_cart/:id_produit',
+  authenticateToken,
   [
     param("id_produit").isInt().withMessage("Le champ 'id_produit' doit être un entier.")
   ],
@@ -32,7 +37,7 @@ router.post(
   
   async (req, res) => {
     const client = getConnection();
-    const id_user = 1; // ID utilisateur en dur pour les tests
+    const id_user = req.user.id;
     const id_produit = req.params.id_produit;
     
     try {
@@ -54,9 +59,10 @@ router.post(
 // Ajouter tous les produits de notre wishlist au panier
 router.post(
   '/add_all_to_cart',
+  authenticateToken,
   async (req, res) => {
     const client = getConnection();
-    const id_user = 1; // ID utilisateur en dur pour les tests
+    const id_user = req.user.id;
 
     try {
       Add_all_to_cart(client, { id_user }, (err, results) => {
@@ -77,6 +83,7 @@ router.post(
 // ajouter un produit à la wishlist
 router.post(
   '/add/:id_produit',
+  authenticateToken,
   [
     param("id_produit").isInt().withMessage("Le champ 'id_produit' doit être un entier.")
   ],
@@ -84,7 +91,7 @@ router.post(
   
   async (req, res) => {
     const client = getConnection();
-    const id_user = 1; // ID utilisateur en dur pour les tests
+    const id_user = req.user.id;
     const id_produit = req.params.id_produit;
     
     try {
@@ -106,6 +113,7 @@ router.post(
 // supprimer un produit de la wishlist
 router.delete(
   '/delete/:id_produit',
+  authenticateToken,
   [
     param("id_produit").isInt().withMessage("Le champ 'id_produit' doit être un entier.")
   ],
@@ -113,7 +121,7 @@ router.delete(
   
   async (req, res) => {
     const client = getConnection();
-    const id_user = 1; // ID utilisateur en dur pour les tests
+    const id_user = req.user.id;
     const id_produit = req.params.id_produit;
     
     try {
@@ -132,12 +140,13 @@ router.delete(
   }
 );
 
-// vider la wishlist (remplacer id_user=1 par l'id de l'utilisateur connecté avec authenticateToken)
+// vider la wishlist
 router.delete(
   '/clear',
+  authenticateToken,
   async (req, res) => {
     const client = getConnection();
-    const id_user = 1; // ID utilisateur en dur pour les tests
+    const id_user = req.user.id;
 
     try {
       Clear_wishlist(client, id_user, (err, results) => {

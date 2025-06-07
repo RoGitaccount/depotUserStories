@@ -79,7 +79,6 @@ export function Get_one_offer_admin(client, id_promotion, callback) {
   });
 }
 
-
 //activé/désactivé une promotion
 export function toggle_availability(client,id_promotion,callback)
 {

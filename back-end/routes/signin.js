@@ -8,6 +8,12 @@ import validateRequest from "../middlewares/validateRequest.js";
 import { getConnection } from "../queries/connect.js";
 import { sendEmail } from "../utils/email.js";
 
+// _____github_____//
+import { decrypt } from '../utils/crypt.js';
+// _________
+
+
+
 const router = express.Router();
 const secret_key = process.env.SECRET_KEY;
 
@@ -49,12 +55,37 @@ router.post(
             .json({ message: "Le mot de passe est incorrect" });
         }
 
+// ______
+  console.log(user.secretkey);
+
+        // const decryptedSecret = decrypt(user.secretkey);
+
+        if (!user.secretkey) {
+  return res.status(400).json({ message: "Clé secrète absente pour cet utilisateur." });
+}
+
+const decryptedSecret = decrypt(user.secretkey);
+
+//______ 
+
+
         // Générer un code de vérification
         const verificationCode = speakeasy.totp({
-          secret: secret_key,
-          encoding: "base32",
-          step: 300, // Code valide pendant 5 minutes
+          // __github__//
+          secret: decryptedSecret,
+          encoding: 'base32',
+          step: 300
+          // ___________//
+
+          // secret: secret_key,
+          // encoding: "base32",
+          // step: 300, // Code valide pendant 5 minutes
         });
+
+          //______github____//
+         console.log("Code généré avec la clé décryptée :", verificationCode);
+          // ________//
+
 
         // Envoyer le code par email
         try {
@@ -69,6 +100,9 @@ router.post(
               message:
                 "Code de vérification envoyé. Veuillez vérifier votre email.",
             });
+             //______github____//
+              console.log(verificationCode);
+            // ________//
         } catch (error) {
           res
             .status(500)
@@ -108,38 +142,92 @@ router.post(
 
         const user = result.results[0];
 
-        // Vérifier le code de vérification
-        const isCodeValid = speakeasy.totp.verify({
-          secret: secret_key,
-          encoding: "base32",
+        // ___github____//
+         const decryptedSecret = decrypt(user.secretkey);
+        // _______//
+
+        
+        // // Vérifier le code de vérification
+        // const isCodeValid = speakeasy.totp.verify({
+        //   secret: secret_key,
+        //   encoding: "base32",
+        //   token: code,
+        //   step: 300, // Code valide pendant 5 minutes
+        // });
+
+        // __github__//
+        const isVerified = speakeasy.totp.verify({
+          secret: decryptedSecret,
+          encoding: 'base32',
           token: code,
-          step: 300, // Code valide pendant 5 minutes
+          step: 300,
+          window: 1
         });
 
-        if (!isCodeValid) {
+        console.log("La vérification a réussi ?", isVerified);
+        // ____//
+
+        // __github__//
+        if (!isVerified) {
           return res
             .status(401)
             .json({
               message: "Le code de vérification est incorrect ou a expiré.",
             });
         }
+        // ____//
 
-        // Générer un token JWT
-        const token = jwt.sign(
-          {
+
+        // if (!isCodeValid) {
+        //   return res
+        //     .status(401)
+        //     .json({
+        //       message: "Le code de vérification est incorrect ou a expiré.",
+        //     });
+        // }
+
+        // // Générer un token JWT
+        // const token = jwt.sign(
+        //   {
+        //     id: user.id_user,
+        //     nom: user.nom,
+        //     prenom: user.prenom,
+        //     role: user.role,
+        //     email: user.email,
+        //   },
+        //   secret_key,
+        //   { expiresIn: "1h" }
+        // );
+
+
+        //__github__//
+          const token = jwt.sign(
+            {
             id: user.id_user,
             nom: user.nom,
             prenom: user.prenom,
             role: user.role,
             email: user.email,
-            tel: user.telephone,
-          },
-          secret_key,
-          { expiresIn: "1h" }
-        );
+            },
+            user.secretkey,
+              { expiresIn: "1h" }
+            );
+          
+        //____//
+
+
+        // Créer un objet utilisateur "public" sans champs sensibles
+        const publicUser = {
+          id_user: user.id_user,
+          nom: user.nom,
+          prenom: user.prenom,
+          email: user.email,
+          role: user.role,
+        };
 
         res.status(200).json({
           message: `Connexion réussie. Bienvenue ${user.nom} ${user.prenom}.`,
+          user: publicUser,
           token,
         });
       });

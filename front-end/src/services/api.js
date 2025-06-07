@@ -1,20 +1,24 @@
 import axios from 'axios';
+import { getUserIdFromToken } from "./auth";
 
 const API_URL = 'http://localhost:8001/api';
 
 export const cartService = {
   getCart: async () => {
-    // const response = await axios.get(`${API_URL}/cart`, {
-    //       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } //pour le token faire de meme pour les autres
-    //     });
-      const response = await axios.get(`${API_URL}/cart`);
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/cart`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     return response.data;
   },
 
   applyPromo: async (promoCode) => {
     try {
+      const token = localStorage.getItem('token');
       // Faire la vérification en une seule requête
-      const verificationResponse = await axios.get(`${API_URL}/offers/verify/${promoCode}`);
+      const verificationResponse = await axios.get(`${API_URL}/offers/verify/${promoCode}`,{
+          headers : { Authorization: `Bearer ${token}` }
+        });
       
       if (!verificationResponse.data.valid) {
         throw new Error(verificationResponse.data.error);
@@ -43,12 +47,17 @@ export const cartService = {
   },
 
   checkout: async (orderData) => {
-    // Ajout d'un id_user temporaire pour les tests
+    const id_user = getUserIdFromToken();
+    if (!id_user) throw new Error("Utilisateur non authentifié");
+    
     const orderWithUser = {
       ...orderData,
-      id_user: 1 // ID utilisateur de test
+      id_user
     };
-    const response = await axios.post(`${API_URL}/order`, orderWithUser);
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/order`, orderWithUser, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     return response.data;
   }
 };

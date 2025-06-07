@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS users (
     mdp VARCHAR(255) NOT NULL,
     role ENUM('admin', 'user') NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    last_activity DATETIME
+    last_activity DATETIME,
+    secretkey VARCHAR(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- informations_facturation
@@ -25,7 +26,7 @@ CREATE TABLE IF NOT EXISTS informations_facturation (
     pays VARCHAR(100),
     telephone VARCHAR(15),
     FOREIGN KEY (id_user) REFERENCES users(id_user)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- produits
 
@@ -121,11 +122,13 @@ CREATE TABLE IF NOT EXISTS commandes (
     id_commande INT AUTO_INCREMENT PRIMARY KEY,
     id_user INT NOT NULL,
     date_commande DATETIME DEFAULT CURRENT_TIMESTAMP,
-    date_modification DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    date_modification DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     statut ENUM('en attente', 'payée', 'activée', 'annulée') NOT NULL DEFAULT 'en attente',
     montant_total DECIMAL(10, 2) NOT NULL,
-    id_promotion INT DEFAULT NULL, --si l'utilisateur a utilisé une promo
-    montant_reduction DECIMAL(10, 2) DEFAULT 0.00, -- montant de la réduction appliquée
+    -- Si l'utilisateur a utilisé une promo
+    id_promotion INT DEFAULT NULL,
+    -- Montant de la réduction appliquée
+    montant_reduction DECIMAL(10, 2) DEFAULT 0.00,
     FOREIGN KEY (id_user) REFERENCES users(id_user),
     FOREIGN KEY (id_promotion) REFERENCES promotions(id_promotion) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -135,7 +138,8 @@ CREATE TABLE IF NOT EXISTS details_commandes (
     id_detail_commande INT AUTO_INCREMENT PRIMARY KEY,
     id_commande INT NOT NULL,
     id_produit INT NOT NULL,
-    prix_unitaire DECIMAL(10, 2) NOT NULL, --prix du produit au moment de la commande
+    -- prix du produit au moment de la commande
+    prix_unitaire DECIMAL(10, 2) NOT NULL, 
     FOREIGN KEY (id_commande) REFERENCES commandes(id_commande),
     FOREIGN KEY (id_produit) REFERENCES produits(id_produit)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -144,12 +148,15 @@ CREATE TABLE IF NOT EXISTS details_commandes (
 CREATE TABLE IF NOT EXISTS paiements (
     id_paiement INT AUTO_INCREMENT PRIMARY KEY,
     id_commande INT NOT NULL,
-    methode_paiement VARCHAR(50), -- carte de crédit, PayPal, etc.
+    -- carte de crédit, PayPal, etc.
+    methode_paiement VARCHAR(50),
     statut_paiement ENUM ('en attente', 'réussi', 'échoué') DEFAULT 'en attente',
     montant_transaction DECIMAL(10, 2) NOT NULL,
     date_transaction DATETIME DEFAULT CURRENT_TIMESTAMP,
-    session_stripe_id VARCHAR(255), -- ID de session Stripe pour le paiement
-    transaction_id VARCHAR(255), -- ID de la transaction Stripe
+    -- ID de session Stripe pour le paiement
+    session_stripe_id VARCHAR(255), 
+    -- ID de la transaction Stripe
+    transaction_id VARCHAR(255), 
 
     UNIQUE (id_commande),
     FOREIGN KEY (id_commande) REFERENCES commandes(id_commande)
@@ -163,7 +170,3 @@ CREATE TABLE IF NOT EXISTS logs (
     date_activite DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_user) REFERENCES users(id_user)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-
-
-

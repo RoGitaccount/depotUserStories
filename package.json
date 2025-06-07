@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "formik": "^2.4.6",
-    "pdfkit": "^0.17.1"
+    "pdfkit": "^0.17.1",
+    "tailwindcss": "^4.1.8"
   }
 }

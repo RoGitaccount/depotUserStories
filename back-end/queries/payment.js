@@ -90,14 +90,15 @@ export function Delete_payment(client, id_paiement, callback) {
     ville,
     region,
     code_postal,
-    pays
+    pays,
+    telephone
   }, callback) {
     const query = `
       INSERT INTO informations_facturation (
         id_user, nom_entreprise, numero_tva,
         adresse_ligne1, adresse_ligne2, ville,
-        region,code_postal, pays
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)
+        region,code_postal, pays, telephone
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
         nom_entreprise = COALESCE(VALUES(nom_entreprise), nom_entreprise),
         numero_tva = COALESCE(VALUES(numero_tva), numero_tva),
@@ -106,7 +107,8 @@ export function Delete_payment(client, id_paiement, callback) {
         ville = COALESCE(VALUES(ville), ville),
         region = VALUES(region),
         code_postal = COALESCE(VALUES(code_postal), code_postal),
-        pays = COALESCE(VALUES(pays), pays)
+        pays = COALESCE(VALUES(pays), pays),
+        telephone = COALESCE(VALUES(telephone), telephone)
     `;
     client.query(query, [
       id_user,
@@ -117,7 +119,8 @@ export function Delete_payment(client, id_paiement, callback) {
       ville,
       region,
       code_postal,
-      pays
+      pays,
+      telephone
     ], callback);
   }
 
@@ -131,7 +134,7 @@ export function Delete_payment(client, id_paiement, callback) {
   export function Update_billing_info(client, {
     id_user, nom_entreprise, numero_tva,
     adresse_ligne1, adresse_ligne2, ville,
-    region, code_postal, pays
+    region, code_postal, pays, telephone
   }, callback) {
     const query = `
       UPDATE informations_facturation SET
@@ -142,13 +145,14 @@ export function Delete_payment(client, id_paiement, callback) {
         ville = COALESCE(?, ville),
         region = COALESCE(?, region),
         code_postal = COALESCE(?, code_postal),
-        pays = COALESCE(?, pays)
+        pays = COALESCE(?, pays),
+        telephone = COALESCE(?, telephone)
       WHERE id_user = ?
     `;
     client.query(query, [
       nom_entreprise, numero_tva,
       adresse_ligne1, adresse_ligne2, ville,
-      region, code_postal, pays,
+      region, code_postal, pays, telephone,
       id_user
     ], callback);
   }

@@ -8,11 +8,15 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import Stripe from 'stripe';
 import path from 'path';
+import { authenticateToken } from '../middlewares/authenticateToken.js';
 
 const router = express.Router();
 const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-router.post('/process-success', async (req, res) => {
+router.post(
+  '/process-success',
+  authenticateToken,
+  async (req, res) => {
   const { sessionId } = req.body;
   let client;
 
@@ -37,7 +41,7 @@ router.post('/process-success', async (req, res) => {
     const initialAmount = parseFloat(session.metadata.initialAmount);
     const finalAmount = parseFloat(session.metadata.finalAmount);
     const id_promotion = session.metadata.id_promotion;
-    const id_user = 1; // À remplacer par l'ID utilisateur réel
+    const id_user = req.user.id;
 
     client = getConnection();
 
@@ -218,14 +222,30 @@ router.post('/process-success', async (req, res) => {
       });
     });
 
-    // 13. Supprimer le PDF généré (optionel)
-    if (fs.existsSync(fileName)) {
-      fs.unlinkSync(fileName);
-    }
+    // // 13. Supprimer le PDF généré (optionel)
+    // if (fs.existsSync(fileName)) {
+    //   fs.unlinkSync(fileName);
+    // }
 
     res.json({ success: true });
   } catch (error) {
     console.error('Erreur lors du traitement de la commande:', error);
+
+    if (req.body.sessionId) {
+        try {
+          const session = await stripeClient.checkout.sessions.retrieve(req.body.sessionId);
+          if (session && session.payment_status === 'paid') {
+            await stripeClient.refunds.create({
+              payment_intent: session.payment_intent,
+              reason: 'requested_by_customer',
+            });
+            console.log('Paiement remboursé automatiquement car erreur process-success');
+          }
+        } catch (refundError) {
+          console.error('Erreur lors du remboursement Stripe:', refundError);
+        }
+      }
+
     if (client) {
       try {
         await new Promise(resolve => client.rollback(() => resolve()));

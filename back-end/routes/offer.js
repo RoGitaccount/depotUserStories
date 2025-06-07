@@ -11,8 +11,8 @@ const router = express.Router();
 /* ----------  Obtenir toutes les promos ---------- */
 router.get(
   "/",
-  // authenticateToken,
-  // isAdmin,
+  authenticateToken,
+  isAdmin,
   async (req, res) => {
     const client = getConnection();
 
@@ -224,16 +224,14 @@ router.patch(
 // Vérifie si l'utilisateur a déjà utilisé un code promo
 router.get(
   "/verify/:code_promo",
-  // authenticateToken, // il faut savoir qui est connecté !
+  authenticateToken, // il faut savoir qui est connecté !
   [param("code_promo").notEmpty().withMessage("Code promo requis.")],
   validateRequest,
   async (req, res) => {
     const client = getConnection();
     const { code_promo } = req.params;
-    const user_id = 1;
-    // req.user.id; // grâce à authenticateToken
+    const user_id = req.user.id;
 
-    
     try {
       // 1. D'abord récupérer l'ID de la promotion à partir du code
       PromotionQueries.Get_offer_by_code(client, code_promo, (err, promotion) => {

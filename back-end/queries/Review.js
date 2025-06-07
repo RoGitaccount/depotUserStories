@@ -41,3 +41,9 @@ export function Delete_review(client, id_avis, callback) {
     callback(null, results);
   });
 }
+
+
+export function Get_review_author(client, id_avis, callback) {
+  const query = "SELECT id_user FROM avis WHERE id_avis = ?";
+  client.query(query, [id_avis], callback);
+}
