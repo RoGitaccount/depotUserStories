@@ -1,8 +1,8 @@
 import crypto from "crypto";
 import 'dotenv/config';
 
-const key = Buffer.from(process.env.AES_SECRET_KEY, 'hex');
-const iv = Buffer.from(process.env.AES_IV, 'hex');
+const key = Buffer.from(process.env.AES_SECRET_KEY);
+const iv = Buffer.from(process.env.AES_IV);
 
 export function encrypt(text) {
   const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
