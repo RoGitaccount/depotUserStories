@@ -202,6 +202,7 @@ router.post(
         res.status(200).json({ message: "Mot de passe réinitialisé avec succès." });
       });
     } catch (error) {
+      
       res.status(400).json({ message: "Token invalide ou expiré." });
     }
   }

@@ -28,6 +28,15 @@ const ProductDetailPage = () => {
     try {
       const res = await fetch(`http://localhost:8001/api/products/${id}`);
       const data = await res.json();
+  
+      // Si l'image est un Blob (base64 ou autre), la récupérer à part
+      if (data.image) {
+        const imageRes = await fetch(`http://localhost:8001/api/products/${id}/image`);
+        const blob = await imageRes.blob();
+        const imageUrl = URL.createObjectURL(blob);
+        data.imageObjectUrl = imageUrl;
+      }
+  
       setProduit(data);
     } catch (error) {
       console.error("Erreur récupération produit :", error);
@@ -187,13 +196,13 @@ return (
         {/* Colonne gauche : infos produit */}
         <div className="flex-1">
           <h1 className="text-3xl font-bold mb-4">{produit.titre}</h1>
-          {produit.image_url && (
-            <img
-              src={produit.image_url}
-              alt={produit.nom}
-              className="w-full max-w-md object-cover rounded-lg mb-4"
-            />
-          )}
+            {produit.imageObjectUrl && (
+              <img
+                src={produit.imageObjectUrl}
+                alt={produit.nom}
+                className="w-full max-w-md object-cover rounded-lg mb-4"
+              />
+            )}
           <p className="text-gray-700 dark:text-gray-300 mb-4">{produit.description}</p>
         </div>
 

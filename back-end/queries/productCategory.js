@@ -5,6 +5,33 @@ export function Add_product_categories(client, id_produit, categories, callback)
   client.query(sql, [values], callback);
 }
 
+export function Update_product_categories(client, id_produit, id_categories, callback) {
+  const deleteQuery = "DELETE FROM produit_categorie WHERE id_produit = ?";
+  client.query(deleteQuery, [id_produit], (err) => {
+    if (err) {
+      console.error("Erreur suppression anciennes catégories :", err);
+      return callback(err);
+    }
+
+    if (!id_categories || id_categories.length === 0) {
+      return callback(null); // rien à insérer, mais suppression OK
+    }
+
+    const insertQuery = "INSERT INTO produit_categorie (id_produit, id_categorie) VALUES ?";
+    const values = id_categories.map((id_cat) => [id_produit, parseInt(id_cat)]);
+
+    client.query(insertQuery, [values], (err2) => {
+      if (err2) {
+        console.error("Erreur insertion nouvelles catégories :", err2);
+        return callback(err2);
+      }
+
+      callback(null); // succès
+    });
+  });
+}
+
+
 // Récupérer les catégories d’un produit
 export function Get_product_categories(client, id_produit, callback) {
   const sql = `

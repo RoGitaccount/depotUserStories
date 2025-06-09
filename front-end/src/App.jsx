@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthProvider';
 import { ToastContainer, Bounce } from 'react-toastify';
@@ -6,8 +6,6 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // Components //
 import Navbar from './components/PageComponents/Navbar';
-import Offers from './components/Offer/offer'
-import CategoryList from './components/Category/category'
 import Register from './pages/Authentication/register'
 import ForgotPassword from './components/Credentials/forgot-password'
 import VerifyCodeLogin from './components/Credentials/login-verifycode'
@@ -26,22 +24,79 @@ import Wishlist from './pages/Wishlist/WishlistPage';
 import CataloguePage from './pages/Catalogue/CataloguePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 
+// Page Admin // 
+
+import DashboardAdmin from './pages/Admin/dashboard_admin.jsx'
+import CategoryList from './pages/Admin/components/category.jsx'
+import Offers from './components/Offer/offer'
+
+// Gestion de l'expiration des tokens // 
+import axios from "axios";
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      error.response &&
+      error.response.status === 403 &&
+      error.response.data.message === "Token invalide ou expiré."
+    ) {
+      localStorage.removeItem("token");
+      window.location.href = "/login"; // redirige vers la page de login
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+
 function App() {
+
+ /*  useEffect(() => {
+    const checkScroll = () => {
+      if (document.body.scrollHeight > window.innerHeight) {
+        // Contenu plus grand que la fenêtre => autoriser scroll
+        document.body.style.overflow = 'auto';
+      } else {
+        // Contenu assez petit => désactiver scroll
+        document.body.style.overflow = 'hidden';
+      }
+    };
+
+    checkScroll(); // check au montage
+
+    window.addEventListener('resize', checkScroll); // check au resize
+
+    return () => {
+      // Remettre overflow par défaut et enlever l'écouteur au démontage
+      document.body.style.overflow = '';
+      window.removeEventListener('resize', checkScroll);
+    };
+    
+  }, []); */
+
   return (
     <AuthProvider>
       <Router>
         <Navbar />
           <Routes>
-            <Route path="/promotions" element={
+
+            <Route path="/admin" element={
+              <AdminRoute>
+                <DashboardAdmin />
+              </AdminRoute>
+            } />
+            <Route path="/admin/promotions" element={
               <AdminRoute>
                 <Offers/>
               </AdminRoute>
             } />
-            <Route path="/categories" element={
+            <Route path="/admin/categories" element={
               <AdminRoute>
                 <CategoryList />
               </AdminRoute>
             } />
+            
             <Route path="/" element={<Accueil/>} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/login" element={<Login/>} />

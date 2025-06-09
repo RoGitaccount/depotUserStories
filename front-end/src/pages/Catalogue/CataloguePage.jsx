@@ -29,27 +29,54 @@ const CataloguePage = () => {
       setLoading(true);
       const res = await fetch("http://localhost:8001/api/products");
       const data = await res.json();
-      setProducts(data);
+  
+      const productsWithBlobImages = await Promise.all(
+        data.map(async (product) => {
+          if (product.image) {
+            const blobRes = await fetch(`http://localhost:8001/api/products/${product.id_produit}/image`);
+            const blob = await blobRes.blob();
+            const imageUrl = URL.createObjectURL(blob);
+            return { ...product, image_url: imageUrl }; // on remplace image_url par le blob transformé
+          }
+          return product;
+        })
+      );
+  
+      setProducts(productsWithBlobImages);
     } catch (error) {
       console.error("Erreur chargement produits :", error);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const fetchProductsByCategory = async (categoryId) => {
     try {
       setLoading(true);
       const res = await fetch(`http://localhost:8001/api/productCategory/categorie/${categoryId}`);
       const data = await res.json();
-      console.log("Produits catégorie :", data); // Ajouté pour debug
-      setProducts(data);
+  
+      const productsWithBlobImages = await Promise.all(
+        data.map(async (product) => {
+          if (product.image) {
+            const blobRes = await fetch(`http://localhost:8001/api/products/${product.id_produit}/image`);
+            const blob = await blobRes.blob();
+            const imageUrl = URL.createObjectURL(blob);
+            return { ...product, image_url: imageUrl };
+          }
+          return product;
+        })
+      );
+  
+      setProducts(productsWithBlobImages);
     } catch (error) {
       console.error("Erreur produits par catégorie :", error);
     } finally {
       setLoading(false);
     }
   };
+  
   
 
   const handleCategoryClick = (categoryId) => {

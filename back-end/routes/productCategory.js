@@ -21,8 +21,17 @@ router.post(
   isAdmin,
   [
     body("id_produit").isInt().withMessage("'id_produit' doit être un entier."),
-    body("categories").isArray({ min: 1 }).withMessage("Une liste de catégories est requise."),
-    body("categories.*").isInt().withMessage("Chaque ID de catégorie doit être un entier.")
+    body("id_categories")
+    .customSanitizer((value, { req }) => {
+      // S'assurer qu'on a toujours un tableau
+      if (Array.isArray(value)) return value;
+      return [value];
+    })
+    .custom((value) => value.length > 0)
+    .withMessage("Au moins une catégorie est requise."),
+  body("id_categories.*")
+    .isInt()
+    .withMessage("Chaque catégorie doit être un entier."),
   ],
   validateRequest,
   async (req, res) => {

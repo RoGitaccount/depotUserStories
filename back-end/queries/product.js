@@ -1,7 +1,7 @@
 export function Insert_product(client, data, callback) {
-  const { titre, description, prix, stock, image_url } = data;
-  const sql = "INSERT INTO produits (titre, description, prix, stock, image_url) VALUES (?, ?, ?, ?, ?)";
-  client.query(sql, [titre, description, prix, stock, image_url], callback);
+  const { titre, description, prix, image } = data;
+  const sql = "INSERT INTO produits (titre, description, prix, image) VALUES (?, ?, ?, ?)";
+  client.query(sql, [titre, description, prix, image], callback);
 }
 
 export function Add_product_categories(client, id_produit, categories, callback) {
@@ -16,6 +16,19 @@ export function Get_all_products(client, callback) {
   const sql = "SELECT * FROM produits";
   client.query(sql, callback);
 }
+
+export function Get_product_image_by_id(client, id, callback) {
+  const sql = "SELECT image FROM produits WHERE id_produit = ?";
+  client.query(sql, [id], (err, results) => {
+    if (err) {
+      console.error("Erreur lors de la requête SQL :", err);
+    } else {
+      //console.log("✅ Résultat image :", results);
+    }
+    callback(err, results);
+  });
+}
+
 
 export function Get_categories_of_product(client, id_produit, callback) {
   const sql = `
@@ -36,21 +49,46 @@ export function Get_products_of_category(client, id_categorie, callback) {
 }
 
 export function Update_product(client, data, callback) {
-  const { id_produit, titre, description, prix } = data;
+  const { id_produit, titre, description, prix, image } = data;
+
+  const fields = [];
+  const values = [];
+
+  if (titre !== undefined) {
+    fields.push("titre = ?");
+    values.push(titre);
+  }
+  if (description !== undefined) {
+    fields.push("description = ?");
+    values.push(description);
+  }
+  if (prix !== undefined) {
+    fields.push("prix = ?");
+    values.push(prix);
+  }
+  if (image !== undefined) {
+    fields.push("image = ?");
+    values.push(image);
+  }
+
+  // Toujours mettre à jour la date de modification
+  fields.push("date_modification = NOW()");
+
+  if (fields.length === 0) {
+    return callback(null, { affectedRows: 0 }); // Rien à mettre à jour
+  }
 
   const query = `
     UPDATE produits SET
-      titre = COALESCE(?, titre),
-      description = COALESCE(?, description),
-      prix = COALESCE(?, prix),
-      date_modification = NOW()
+      ${fields.join(", ")}
     WHERE id_produit = ?
   `;
 
-  const values = [titre, description, prix, id_produit];
+  values.push(id_produit);
 
   client.query(query, values, callback);
 }
+
 
 export function Delete_product(client, id_produit, callback) {
   const sql = "DELETE FROM produits WHERE id_produit = ?";

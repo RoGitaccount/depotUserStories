@@ -26,8 +26,10 @@ export default function Dashboard() {
     
       setUser(decoded);
     } catch (error) {
+      // Déconnexion automatique
       console.error("Token invalide :", error);
       localStorage.removeItem("token");
+      localStorage.removeItem("user");
       navigate("/login");
     }
   }, [navigate]);

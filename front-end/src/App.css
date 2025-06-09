@@ -3,6 +3,8 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  height: auto; /* ou 100% si tu veux */
+  overflow-y: auto;
 }
 
 .logo {
