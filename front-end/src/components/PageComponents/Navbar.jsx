@@ -36,26 +36,39 @@ const Navbar = () => {
       <ul className="flex flex-wrap gap-4 items-center text-gray-800 dark:text-white">
         <li className="font-bold text-xl text-indigo-700 dark:text-indigo-200"><Link to="/">MyShop</Link></li>
         <li><Link to="/">Accueil</Link></li>
-        {user?.role === "admin" && (
+        {isAuthenticated ? (
           <>
-            <li><Link to="/promotions">Promotions</Link></li>
-            <li><Link to="/categories">Catégories</Link></li>
+            <li><Link to="/cart">Panier</Link></li>
+            <li><Link to="/wishlist">Wishlist</Link></li>
+            <li><Link to="/checkout">Checkout</Link></li>
+          </>
+        ):(
+          <>
           </>
         )}
-        <li><Link to="/cart">Panier</Link></li>
-        <li><Link to="/wishlist">Wishlist</Link></li>
-        <li><Link to="/checkout">Checkout</Link></li>
-        <li><Link to="/catalogue">Catalogue</Link></li>
+
+        <li><Link to="/catalog">Catalogue</Link></li>
+        {user?.role === "admin" && (
+          <>
+            <li><Link to="/admin" className='text-red-500'>Admin</Link></li>
+          </>
+        )}
         {isAuthenticated ? (
-          <li><button onClick={handleLogout} className=" text-red-500 hover:text-red-800 font-semibold">
-            Déconnexion
-          </button></li>
+          <>
+            <li><Link to="/dashboard">Mon compte</Link></li>
+            <li>
+              <button onClick={handleLogout} className="text-red-500 hover:text-red-800 font-semibold">
+                Déconnexion
+              </button>
+            </li>
+          </>
         ) : (
           <>
             <li><Link to="/register">Inscription</Link></li>
             <li><Link to="/login">Connexion</Link></li>
           </>
         )}
+        
       </ul>
 
       <div className="flex items-center gap-2 mt-2 md:mt-0">

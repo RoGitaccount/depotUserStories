@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { Navigate, BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthProvider';
 import { ToastContainer, Bounce } from 'react-toastify';
+
 import 'react-toastify/dist/ReactToastify.css';
 
 // Components //
@@ -86,16 +87,6 @@ function App() {
                 <DashboardAdmin />
               </AdminRoute>
             } />
-            <Route path="/admin/promotions" element={
-              <AdminRoute>
-                <Offers/>
-              </AdminRoute>
-            } />
-            <Route path="/admin/categories" element={
-              <AdminRoute>
-                <CategoryList />
-              </AdminRoute>
-            } />
             
             <Route path="/" element={<Accueil/>} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -108,8 +99,9 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/success" element={<SuccessPage />} />
-            <Route path="/catalogue" element={<CataloguePage />} />
+            <Route path="/catalog" element={<CataloguePage />} />
             <Route path="/produit/:id" element={<ProductDetailPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} /> {/* Redirection si un utilisateur va sur une route inconnue / non déclarée */}
           </Routes>
           <ToastContainer
             position="bottom-right"
