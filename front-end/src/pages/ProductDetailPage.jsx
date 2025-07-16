@@ -511,7 +511,6 @@ const ProductDetailPage = () => {
         )}
 
     </div>
-  </div>
 );
 };
 
