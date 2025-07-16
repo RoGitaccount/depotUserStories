@@ -1,77 +1,121 @@
-// import jwt from 'jsonwebtoken'
-// const secret_key = process.env.SECRET_KEY
+// import jwt from 'jsonwebtoken';
+// import { getConnection } from "../queries/connect.js";
+// import { GetUserById } from '../queries/User.js';
 
-// // Middleware pour vérifier les JWT
-// export function authenticateToken(req, res, next) {
-//   const authHeader = req.headers["authorization"]; // Format attendu: "Bearer <token>"
-//   if (!authHeader) {
-//     return res.status(401).json({ message: "Token manquant Veuillez vous connecter." });
-//   }
+// export async function authenticateToken(req, res, next) {
 
-//   const token = authHeader.split(" ")[1];
-//   if (!token) {
-//     return res.status(401).json({ message: "Token manquant." });
-//   }
-
-//   jwt.verify(token, secret_key, (err, user) => {
-//     if (err) {
-//       return res.status(403).json({ message: "Token invalide." });
+//   const token = req.cookies.token;  // <-- Récupération dans cookie
+//     if (!token) {
+//       return res.status(401).json({ message: "Token manquant. Veuillez vous connecter." });
 //     }
-//     req.user = user; // Ajout des informations utilisateur à l'objet req
-//     next();
+
+//   let decoded;
+//   try {
+//     decoded = jwt.decode(token);
+//     if (!decoded || !decoded.id) {
+//       return res.status(400).json({ message: "Token invalide (structure)." });
+//     }
+//   } catch {
+//     return res.status(400).json({ message: "Token invalide." });
+//   }
+
+//   getConnection((err, client) => {
+//     if (err) {
+//       return res.status(500).json({ message: "Erreur de connexion à la base de données" });
+//     }
+//     GetUserById(client, decoded.id, (err, result) => {
+//       client.release();
+//       if (err || !result || !result.exists) {
+//         return res.status(404).json({ message: "Utilisateur introuvable." });
+//       }
+
+//       const user = result.results[0];
+
+//       if (!user.secretkey) {
+//         return res.status(500).json({ message: "Clé secrète manquante." });
+//       }
+
+// jwt.verify(token, user.secretkey, (err, verifiedUser) => {
+//   if (err) {
+//     console.error("Erreur de vérification JWT :", err.name, "-", err.message);
+//     return res.status(401).json({ message: "Token invalide ou expiré." });
+//   }
+
+//   console.log("Payload JWT vérifié avec succès :", verifiedUser);
+//   req.user = verifiedUser;
+//   next();
+//  });
+//     });
 //   });
 // }
 
 
-// ______ajout github____//
-
 import jwt from 'jsonwebtoken';
 import { getConnection } from "../queries/connect.js";
 import { GetUserById } from '../queries/User.js';
+import { decrypt } from '../utils/crypt.js';
 
 export async function authenticateToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  if (!authHeader) {
-    return res.status(401).json({ message: "Token manquant. Veuillez vous connecter." });
-  }
+  const token = req.cookies.token;
 
-  const token = authHeader.split(" ")[1];
   if (!token) {
-    return res.status(401).json({ message: "Token manquant." });
+    return res.status(401).json({ 
+      message: "Token manquant. Veuillez vous connecter." 
+    });
   }
 
   let decoded;
   try {
-    // Décodage sans vérification pour obtenir l'id
+    // Décoder le token sans vérification pour obtenir l'ID utilisateur
     decoded = jwt.decode(token);
     if (!decoded || !decoded.id) {
-      return res.status(400).json({ message: "Token invalide (structure)." });
+      return res.status(401).json({ 
+        message: "Token invalide ou expiré." 
+      });
     }
-  } catch {
-    return res.status(400).json({ message: "Token invalide." });
+  } catch (error) {
+    return res.status(401).json({ 
+      message: "Token invalide ou expiré." 
+    });
   }
 
-  const client = getConnection();
-  GetUserById(client, decoded.id, (err, result) => {
-    if (err || !result || !result.exists) {
-      return res.status(404).json({ message: "Utilisateur introuvable." });
+  getConnection((err, client) => {
+    if (err) {
+      return res.status(500).json({ 
+        message: "Erreur de connexion à la base de données" 
+      });
     }
 
-    const user = result.results[0];
-
-    if (!user.secretkey) {
-      return res.status(500).json({ message: "Clé secrète manquante." });
-    }
-
-    // Vérifier le token avec la vraie secretkey de l'utilisateur
-    jwt.verify(token, user.secretkey, (err, verifiedUser) => {
-      if (err) {
-        return res.status(403).json({ message: "Token invalide ou expiré." });
+    GetUserById(client, decoded.id, (err, result) => {
+      client.release();
+      
+      if (err || !result || !result.exists) {
+        return res.status(404).json({ 
+          message: "Utilisateur introuvable." 
+        });
       }
 
-      req.user = verifiedUser;
-      next();
+      const user = result.results[0];
+      
+      if (!user.secretkey) {
+        return res.status(500).json({ 
+          message: "Clé secrète manquante." 
+        });
+      }
+
+      // Vérifier le token avec la clé secrète de l'utilisateur
+      jwt.verify(token, user.secretkey, (err, verifiedUser) => {
+        if (err) {
+          console.error("Erreur de vérification JWT :", err.name, "-", err.message);
+          return res.status(401).json({ 
+            message: "Token invalide ou expiré." 
+          });
+        }
+
+        console.log("Payload JWT vérifié avec succès :", verifiedUser);
+        req.user = verifiedUser;
+        next();
+      });
     });
   });
 }
-// ______
