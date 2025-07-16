@@ -3,20 +3,18 @@ import { useLocation } from 'react-router-dom';
 import BillingForm from '../../components/Checkout/BillingForm';
 import PromoCodeForm from '../../components/Checkout/PromoCodeForm';
 import CartSummary from "../../components/Cart/CartSummary";
-import { cartService } from '../../services/api';
-import axios from 'axios';
-import { getUserIdFromToken, isTokenValid } from '../../services/auth';
 import RedirectButton from '../../components/PageComponents/RedirectButton';
+import { cartService } from '../../services/api';
+import { isAuthenticated, fetchUserFromCookie } from '../../services/auth';
+import axios from 'axios';
+import axiosInstance from '../../services/axiosInstance';
 
 const CheckoutPage = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
- 
   const [cartError, setCartError] = useState(null);
   const [userError, setUserError] = useState(null);
 
-
-  // États pour les données
   const [billingInfo, setBillingInfo] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const [billingDetails, setBillingDetails] = useState(null);
@@ -27,62 +25,42 @@ const CheckoutPage = () => {
   const [reduction, setReduction] = useState(0);
   const [reductionPercent, setReductionPercent] = useState(0);
 
-  // Effet pour charger les données du panier si non présentes
+  // Chargement du panier
   useEffect(() => {
     if (!location.state?.cartTotal) {
       loadCart();
     }
   }, [location.state]);
 
-  // // Chargement du panier
-  // const loadCart = async () => {
-  //   try {
-  //     const data = await cartService.getCart();
-  //     setCartItems(data);
-  //     const cartTotal = data.reduce((sum, item) => sum + parseFloat(item.prix), 0);
-  //     setTotal(cartTotal);
-  //   } catch (error) {
-  //     console.error('Erreur chargement panier:', error);
-  //     setError('Impossible de charger le panier');
-  //   }
-  // };
-
-const loadCart = async () => {
-  try {
-    const id_user = getUserIdFromToken();
-    if (!id_user) {
-      setCartError("Vous devez être connecté pour pouvoir renseigner vos informations de paiements.");
-      return;
+  const loadCart = async () => {
+    try {
+      const isAuth = await isAuthenticated();
+      if (!isAuth) {
+        setCartError("Vous devez être connecté pour accéder au panier.");
+        return;
+      }
+      const data = await cartService.getCart();
+      setCartItems(data);
+      const cartTotal = data.reduce((sum, item) => sum + parseFloat(item.prix), 0);
+      setTotal(cartTotal);
+    } catch (error) {
+      console.error('Erreur chargement panier:', error);
+      setCartError("Impossible de charger le panier.");
     }
+  };
 
-    const data = await cartService.getCart();
-    setCartItems(data);
-    const cartTotal = data.reduce((sum, item) => sum + parseFloat(item.prix), 0);
-    setTotal(cartTotal);
-  } catch (error) {
-    console.error('Erreur chargement panier:', error);
-    setError("Impossible de charger le panier.");
-  }
-};
-
-
-
-  // Effet pour charger les informations utilisateur et facturation
+  // Chargement infos utilisateur et facturation
   useEffect(() => {
     const fetchUserAndBillingInfo = async () => {
       try {
         setLoading(true);
+        const user = await fetchUserFromCookie();
+        if (!user) throw new Error("Utilisateur non connecté");
 
-        const id_user = getUserIdFromToken();
-        if (!id_user) throw new Error("Utilisateur non authentifié");
+        const billingRes = await axiosInstance.get("/rgpd/get_billing_info/me");
 
-        const [userResponse, billingResponse] = await Promise.all([
-          axios.get(`http://localhost:8001/api/rgpd/get/${id_user}`),
-          axios.get(`http://localhost:8001/api/rgpd/get_billing_info/${id_user}`)
-        ]);
-
-        setUserInfo(userResponse.data);
-        setBillingDetails(billingResponse.data);
+        setUserInfo(user);
+        setBillingDetails(billingRes.data);
       } catch (error) {
         console.error('Erreur:', error);
         setUserError("Erreur lors du chargement des informations utilisateur.");
@@ -94,75 +72,63 @@ const loadCart = async () => {
     fetchUserAndBillingInfo();
   }, []);
 
-  // Effet pour combiner les informations utilisateur et facturation
+  // Fusion des infos utilisateur + facturation
   useEffect(() => {
-  if (userInfo) {
-    const billing = billingDetails && billingDetails[0] ? billingDetails[0] : {};
-    const combinedInfo = {
-      nom: userInfo.nom || '',
-      prenom: userInfo.prenom || '',
-      email: userInfo.email || '',
-      telephone: billing.telephone || '',
-      adresse: billing.adresse_ligne1 || '',
-      complementAdresse: billing.adresse_ligne2 || '',
-      ville: billing.ville || '',
-      region: billing.region || '',
-      codePostal: billing.code_postal || '',
-      pays: billing.pays || '',
-      nomEntreprise: billing.nom_entreprise || '',
-      numeroTva: billing.numero_tva || ''
-    };
-    setBillingInfo(combinedInfo);
-  }
-}, [userInfo, billingDetails]);
+    if (userInfo) {
+      const billing = billingDetails && billingDetails[0] ? billingDetails[0] : {};
+      const combinedInfo = {
+        nom: userInfo.nom || '',
+        prenom: userInfo.prenom || '',
+        email: userInfo.email || '',
+        telephone: billing.telephone || '',
+        adresse: billing.adresse_ligne1 || '',
+        complementAdresse: billing.adresse_ligne2 || '',
+        ville: billing.ville || '',
+        region: billing.region || '',
+        codePostal: billing.code_postal || '',
+        pays: billing.pays || '',
+        nomEntreprise: billing.nom_entreprise || '',
+        numeroTva: billing.numero_tva || ''
+      };
+      setBillingInfo(combinedInfo);
+    }
+  }, [userInfo, billingDetails]);
 
-  // Gestionnaire de soumission des informations de facturation
+  // Soumission formulaire facturation
   const handleBillingSubmit = async (billingData) => {
-    
-      // Vérifie la validité du token AVANT de lancer le paiement
-    if (!isTokenValid()) {
+    const isAuth = await isAuthenticated();
+    if (!isAuth) {
       alert("Votre session a expiré, veuillez vous reconnecter.");
       window.location.href = "/login";
       return;
     }
 
-      // Vérification panier vide ou total à 0
     if (!cartItems || cartItems.length === 0 || (total - reduction) <= 0) {
-      alert("Votre panier est vide ou le montant total est nul. Paiement impossible.");
-      window.location.href = "/checkout";
+      alert("Votre panier est vide ou le montant total est nul.");
       return;
     }
 
     try {
-      const id_user = getUserIdFromToken();
-      if (!id_user) throw new Error("Utilisateur non authentifié");
-
-      // 1. Sauvegarder les informations de facturation
-      await axios.post(`http://localhost:8001/api/rgpd/update_billing_data/${id_user}`, {
-        id_user,
-        ...billingData
-      });
+      await axiosInstance.post("/rgpd/update_billing_data/me", billingData);
 
       const TVA = 0.2;
       const prixTTC = total * (1 + TVA);
       const montantReduction = (prixTTC * reductionPercent) / 100;
       const prixTTCAvecPromo = prixTTC - montantReduction;
 
-      const response = await axios.post('http://localhost:8001/api/stripe/create-checkout-session', {
+      const response = await axiosInstance.post('/stripe/create-checkout-session', {
         cartItems,
         totalAmount: prixTTCAvecPromo,
         initialAmount: prixTTC,
         promoCode: promoCode ? `${reductionPercent}% (${montantReduction.toFixed(2)}€)` : '',
         id_promotion: promoId,
         billingInfo: billingData
-      });
+      },);
 
-
-      // 3. Rediriger vers Stripe Checkout
       window.location.href = response.data.url;
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Une erreur est survenue lors de la création de la session de paiement.');
+      alert('Une erreur est survenue lors du paiement.');
     }
   };
 
@@ -170,25 +136,20 @@ const loadCart = async () => {
   const handlePromoSubmit = async (code) => {
     try {
       const result = await cartService.applyPromo(code);
-      
       const reductionPercentage = parseFloat(result.montant_reduction);
       const reductionAmount = (total * reductionPercentage) / 100;
-      
       setReductionPercent(reductionPercentage);
       setReduction(reductionAmount);
       setPromoCode(code);
       setPromoId(result.id_promotion);
-      
       alert(result.message);
     } catch (error) {
       console.error('Erreur code promo:', error);
-      // Réinitialiser les états
       setReductionPercent(0);
       setReduction(0);
       setPromoCode('');
       setPromoId(null);
-      
-      alert(error.message);
+      alert(error.message || "Code promo invalide.");
     }
   };
 

@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Footer from "../../components/PageComponents/Footer";
+import axiosInstance from '../../services/axiosInstance';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,17 +14,22 @@ export default function Login() {
     password: Yup.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères.').required('Le mot de passe est requis.'),
   });
 
-  const initialValues = { email: '', password: '' };
+  const initialValues = { email: '', password: '', rememberMe: false };
 
   const onSubmit = async (values, { setSubmitting }) => {
     try {
-      const payload = { email: values.email, password: values.password };
-      await axios.post('http://localhost:8001/api/login', payload, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const payload = {
+      email: values.email,
+      password: values.password,
+      rememberMe: values.rememberMe, // on l'envoie au backend
+    };
+    await axiosInstance.post('/login', payload);
+
       alert('Code envoyé par email. Veuillez vérifier votre boîte mail.');
-      localStorage.setItem('emailToVerify', values.email);
-      navigate('/verify-code');
+      
+      // Transmet l'email vers la page de vérification
+      navigate('/verify-code', { state: { email: values.email,rememberMe: values.rememberMe,} });
+
     } catch (error) {
       alert(error.response?.data?.message || 'Erreur lors de la connexion.');
     } finally {
@@ -50,6 +56,16 @@ export default function Login() {
                 <button type="submit" disabled={isSubmitting} className="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-3 rounded-lg font-semibold shadow hover:from-indigo-600 hover:to-pink-600 transition">
                   {isSubmitting ? 'En cours...' : "Se connecter"}
                 </button>
+                <div className="flex items-center">
+                <Field
+                  type="checkbox"
+                  name="rememberMe"
+                  className="mr-2"
+                />
+                <label htmlFor="rememberMe" className="text-sm text-gray-700 dark:text-gray-200">
+                  Rester connecté
+                </label>
+              </div>
                 <div className="text-center mt-2">
                   <a href="/forgot-password" className="text-indigo-500 hover:underline text-sm">
                     Mot de passe oublié ?
@@ -60,7 +76,7 @@ export default function Login() {
           </Formik>
         </div>
       </main>
-      <Footer/>
+      <Footer />
     </div>
   );
 }

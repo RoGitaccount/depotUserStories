@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import axiosInstance from "../../../services/axiosInstance";
 
 const ArticlesManagement = () => {
     const [categories, setCategories] = useState([]);
 
     const [editingId, setEditingId] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [searchArticleTerm, setSearchArticleTerm] = useState("");
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
     //
     const filteredCategories = categories
-  .filter((cat) =>
-    cat.nom_categorie.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (cat.description && cat.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
-  .sort((a, b) =>
-    a.nom_categorie.localeCompare(b.nom_categorie, 'fr', { sensitivity: 'base' })
-  );
+
+    .filter((cat) =>
+      cat.nom_categorie.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (cat.description && cat.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
+    .sort((a, b) =>
+      a.nom_categorie.localeCompare(b.nom_categorie, 'fr', { sensitivity: 'base' })
+    );
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -31,18 +34,19 @@ const ArticlesManagement = () => {
         if (!term) return text;
         const regex = new RegExp(`(${term})`, "gi");
         return text.split(regex).map((part, index) =>
-          regex.test(part) ? <mark key={index} className="bg-yellow-400 dark:bg-yellow-300">{part}</mark> : part
+        //regex.test(part) ? <mark key={index} className="bg-yellow-400 dark:bg-yellow-300">{part}</mark> : part
+        regex.test(part) ? <span key={index} className="bg-yellow-300 text-black px-0.5">{part}</span>: part
         );
       };
 
     const [articles, setArticles] = useState([]);
-        const [form, setForm] = useState({
-        id_produit: null,
-        titre: "",
-        description: "",
-        prix: "",
-        image: null, // fichier image (Blob)
-    });
+      const [form, setForm] = useState({
+      id_produit: null,
+      titre: "",
+      description: "",
+      prix: "",
+      image: null, // fichier image (Blob)
+  });
     const [previewImage, setPreviewImage] = useState(null);
     const [editing, setEditing] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -59,10 +63,16 @@ const ArticlesManagement = () => {
     }
   };
   
+  const filteredArticles = articles.filter(
+    (article) =>
+      article.titre.toLowerCase().includes(searchArticleTerm.toLowerCase()) ||
+      (article.description && article.description.toLowerCase().includes(searchArticleTerm.toLowerCase()))
+  );
+
   const fetchCategories = async () => {
     try {
       const res = await axios.get("http://localhost:8001/api/category");
-      console.log("Catégories récupérées :", res.data); // <== AJOUTE ICI
+      console.log("Catégories récupérées :", res.data);
       setCategories(res.data);
     } catch (err) {
       console.error("Erreur récupération catégories:", err);
@@ -103,11 +113,13 @@ const ArticlesManagement = () => {
     setLoading(true);
     setError(null);
 
-    const token = localStorage.getItem("token");
-    const headers = {
-      ...(token && { Authorization: `Bearer ${token}` }),
-      // Pas de Content-Type, axios le définit automatiquement pour FormData
-    };
+    // const token = localStorage.getItem("token");
+    // const headers = {
+    //   ...(token && { Authorization: `Bearer ${token}` }),
+    //   // Pas de Content-Type, axios le définit automatiquement pour FormData
+    // };
+
+
     console.log("Catégories sélectionnées :", selectedCategories);
 
     try {
@@ -130,15 +142,9 @@ const ArticlesManagement = () => {
       }
 
       if (editing) {
-        // Modifier - pour PUT avec multipart/form-data, certains serveurs préfèrent PATCH, à vérifier backend
-        await axios.put(
-          `http://localhost:8001/api/products/update/${form.id_produit}`,
-          formData,
-          { headers }
-        );
+        await axiosInstance.put(`/products/update/${form.id_produit}`, formData);
       } else {
-        // Ajouter
-        await axios.post("http://localhost:8001/api/products/add", formData, { headers });
+        await axiosInstance.post("/products/add", formData);
       }
 
       await fetchArticles();
@@ -164,14 +170,11 @@ const ArticlesManagement = () => {
     setPreviewImage(null);
     setEditing(true);
   
-    const token = localStorage.getItem("token");
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    // const token = localStorage.getItem("token");
+    // const headers = token ? { Authorization: `Bearer ${token}` } : {};
   
     try {
-      const res = await axios.get(
-        `http://localhost:8001/api/productCategory/produit/${article.id_produit}`,
-        { headers }
-      );
+      const res = await axiosInstance.get(`/productCategory/produit/${article.id_produit}`);
       //console.log("Catégories associées :", res.data.map(c => c.id_categorie));
       setSelectedCategories(res.data.map(c => c.id_categorie)); // ex: [1, 3, 5]
     } catch (err) {
@@ -183,10 +186,11 @@ const ArticlesManagement = () => {
   // Supprimer un article
   const handleDelete = async (id) => {
     if (window.confirm("Voulez-vous vraiment supprimer cet article ?")) {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      // const token = localStorage.getItem("token");
+      // const headers = token ? { Authorization: `Bearer ${token}` } : {};
       try {
-        await axios.delete(`http://localhost:8001/api/products/delete/${id}`, { headers });
+        // await axios.delete(`http://localhost:8001/api/products/delete/${id}`, { headers });
+        await axiosInstance.delete(`/products/delete/${id}`);
         setArticles(articles.filter((a) => a.id_produit !== id));
       } catch (err) {
         console.error("Erreur suppression article:", err);
@@ -290,6 +294,7 @@ const ArticlesManagement = () => {
                 {/* Pagination */}
                 <div className="flex justify-center items-center mt-4 gap-2">
                   <button
+                    type="button"
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
                     className="px-3 py-1 border rounded disabled:opacity-50"
@@ -300,6 +305,7 @@ const ArticlesManagement = () => {
                     Page {currentPage} / {totalPages || 1}
                   </span>
                   <button
+                    type="button"
                     onClick={() =>
                       setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                     }
@@ -342,7 +348,8 @@ const ArticlesManagement = () => {
                   type="button"
                   onClick={() => {
                     setEditing(false);
-                    setForm({ id_produit: null, titre: "", description: "", prix: "", image: null });
+                    setForm({ id_produit: null, titre: "", description: "", prix: "", image: null});
+                    setSelectedCategories([]);
                     setPreviewImage(null);
                     setError(null);
                   }}
@@ -358,8 +365,16 @@ const ArticlesManagement = () => {
         {/* Partie droite : Liste des articles */}
         <div className="w-1/2 max-h-[85vh] overflow-y-auto">
           {error && <p className="text-red-600 mb-4">{error}</p>}
+           <input
+            type="text"
+            placeholder="Rechercher un article..."
+            value={searchArticleTerm}
+            onChange={(e) => setSearchArticleTerm(e.target.value)}
+            className='mb-4 w-full px-3 py-2 border rounded dark:bg-gray-700 dark:text-white'
+          />
           <ul className="space-y-2">
-            {articles.map((article) => (
+            {/* {articles.map((article) => ( */}
+            {filteredArticles.map((article) => (
               <li
                 key={article.id_produit}
                 className="bg-gray-100 dark:bg-gray-700 p-4 rounded shadow flex justify-between items-center"
@@ -369,20 +384,20 @@ const ArticlesManagement = () => {
                   <p className="text-sm">{article.description}</p>
                   <p className="text-sm">Prix : {article.prix} €</p>
                 </div>
-                <div className="space-x-2">
-                  <button
-                    onClick={() => handleEdit(article)}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    onClick={() => handleDelete(article.id_produit)}
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                  >
-                    Supprimer
-                  </button>
-                </div>
+                 <div className="flex gap-2 mt-4 sm:mt-0">
+        <button
+          onClick={() => handleEdit(article)}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-xl transition-all duration-200"
+        >
+          Modifier
+        </button>
+        <button
+          onClick={() => handleDelete(article.id_produit)}
+          className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-xl transition-all duration-200"
+        >
+          Supprimer
+        </button>
+      </div>
               </li>
             ))}
           </ul>

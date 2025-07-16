@@ -4,23 +4,35 @@ const Offers = () => {
   const [offers, setOffers] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    fetch("http://localhost:8001/api/offers", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Non autorisé ou erreur serveur");
-        return res.json();
-      })
-      .then((data) => setOffers(data))
-      .catch((err) => {
-        setError(err.message);
-        setOffers([]); // évite l'erreur .map si non tableau
-      });
-  }, []);
+  // useEffect(() => {
+  //   // const token = localStorage.getItem("token");
+
+  //   fetch("http://localhost:8001/api/offers", {
+  //     // headers: {
+  //     //   Authorization: `Bearer ${token}`,
+  //     // },
+  //     withCredentials: true,
+  //   })
+  //     .then((res) => {
+  //       if (!res.ok) throw new Error("Non autorisé ou erreur serveur");
+  //       return res.json();
+  //     })
+  //     .then((data) => setOffers(data))
+  //     .catch((err) => {
+  //       setError(err.message);
+  //       setOffers([]); // évite l'erreur .map si non tableau
+  //     });
+  // }, []);
+
+    useEffect(() => {
+      axiosInstance.get("/offers")
+        .then((res) => setOffers(res.data))
+        .catch((err) => {
+          setError(err.response?.data?.message || err.message || "Erreur lors du chargement des offres");
+          setOffers([]); // pour éviter erreur .map si non tableau
+        });
+    }, []);
+
 
   if (error) {
     return <div className="text-black dark:text-white min-h-screen flex flex-col bg-gradient-to-b from-blue-100 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">

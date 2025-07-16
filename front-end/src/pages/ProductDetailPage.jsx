@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../contexts/AuthContext";
+import axiosInstance from "../services/axiosInstance";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -15,6 +16,7 @@ const ProductDetailPage = () => {
   const [editId, setEditId] = useState(null);
   const [editNote, setEditNote] = useState(5);
   const [editCommentaire, setEditCommentaire] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
 
   // Auth
   const { user, isAuthenticated } = useContext(AuthContext);
@@ -22,7 +24,38 @@ const ProductDetailPage = () => {
   useEffect(() => {
     fetchProduit();
     fetchAvis();
+    fetchSuggestions();
   }, [id]);
+
+  const fetchSuggestions = async () => {
+    try {
+      const res = await fetch(`http://localhost:8001/api/products/${id}/suggestions`);
+      const data = await res.json();
+  
+      // Récupérer les images pour chaque suggestion
+      const suggestionsWithImages = await Promise.all(
+        data.map(async (prod) => {
+          if (prod.image) {
+            try {
+              const imgRes = await fetch(`http://localhost:8001/api/products/${prod.id_produit}/image`);
+              const blob = await imgRes.blob();
+              const imageUrl = URL.createObjectURL(blob);
+              return { ...prod, imageObjectUrl: imageUrl };
+            } catch (imgErr) {
+              console.error(`Erreur chargement image produit ${prod.id_produit}`, imgErr);
+              return prod; // Retourne sans image
+            }
+          } else {
+            return prod;
+          }
+        })
+      );
+  
+      setSuggestions(suggestionsWithImages);
+    } catch (error) {
+      console.error("Erreur récupération suggestions :", error);
+    }
+  };
 
   const fetchProduit = async () => {
     try {
@@ -45,102 +78,171 @@ const ProductDetailPage = () => {
     }
   };
 
+  // const fetchAvis = async () => {
+  //   try {
+  //     const res = await axios.get(`http://localhost:8001/api/reviews/${id}`);
+  //     setAvis(res.data);
+  //   } catch (error) {
+  //     console.error("Erreur récupération avis :", error);
+  //   }
+  // };
+
   const fetchAvis = async () => {
-    try {
-      const res = await axios.get(`http://localhost:8001/api/reviews/${id}`);
-      setAvis(res.data);
-    } catch (error) {
-      console.error("Erreur récupération avis :", error);
-    }
-  };
+  try {
+    const res = await axiosInstance.get(`/reviews/${id}`);
+    setAvis(res.data);
+  } catch (error) {
+    console.error("Erreur récupération avis :", error);
+  }
+};
+
+
+  // const handleAddToCart = async () => {
+  //   try {
+  //     // const token = localStorage.getItem("token");
+  //     await axios.post(
+  //       `http://localhost:8001/api/wishlist/add_to_cart/${produit.id_produit}`,
+  //       {},
+  //       {
+  //         // headers: {
+  //         //   Authorization: `Bearer ${token}`,
+  //         // },
+  //          withCredentials: true,
+  //       }
+  //     );
+  //     alert("Produit ajouté au panier !");
+  //   } catch (error) {
+  //     console.error("Erreur ajout panier :", error);
+  //     alert("Erreur lors de l'ajout au panier.");
+  //   }
+  // };
 
   const handleAddToCart = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `http://localhost:8001/api/wishlist/add_to_cart/${produit.id_produit}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      alert("Produit ajouté au panier !");
-    } catch (error) {
-      console.error("Erreur ajout panier :", error);
-      alert("Erreur lors de l'ajout au panier.");
-    }
-  };
+  try {
+    await axiosInstance.post(`/wishlist/add_to_cart/${produit.id_produit}`, {});
+    alert("Produit ajouté au panier !");
+  } catch (error) {
+    console.error("Erreur ajout panier :", error);
+    alert("Erreur lors de l'ajout au panier.");
+  }
+};
+
+
+  // const handleAddToWishlist = async () => {
+  //   try {
+  //     // const token = localStorage.getItem("token");
+  //     await axios.post(
+  //       `http://localhost:8001/api/wishlist/add/${produit.id_produit}`,
+  //       {},
+  //       {
+  //         // headers: {
+  //         //   Authorization: `Bearer ${token}`,
+  //         // },
+  //          withCredentials: true,
+  //       }
+  //     );
+  //     alert("Produit ajouté à la wishlist !");
+  //   } catch (error) {
+  //     console.error("Erreur ajout wishlist :", error);
+  //     alert("Erreur lors de l'ajout à la wishlist.");
+  //   }
+  // };
 
   const handleAddToWishlist = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `http://localhost:8001/api/wishlist/add/${produit.id_produit}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      alert("Produit ajouté à la wishlist !");
-    } catch (error) {
-      console.error("Erreur ajout wishlist :", error);
-      alert("Erreur lors de l'ajout à la wishlist.");
-    }
-  };
+  try {
+    await axiosInstance.post(`/wishlist/add/${produit.id_produit}`, {});
+    alert("Produit ajouté à la wishlist !");
+  } catch (error) {
+    console.error("Erreur ajout wishlist :", error);
+    alert("Erreur lors de l'ajout à la wishlist.");
+  }
+};
+
 
   // Ajout d'avis
+  // const handleSubmitReview = async (e) => {
+  //   e.preventDefault();
+  //   if (!user) {
+  //     alert("Vous devez être connecté pour laisser un avis.");
+  //     return;
+  //   }
+  //   try {
+  //     // const token = localStorage.getItem("token");
+  //     await axios.post(
+  //       "http://localhost:8001/api/reviews/add-review",
+  //       {
+  //         id_produit: produit.id_produit,
+  //         note,
+  //         commentaire,
+  //       },
+  //       {
+  //         // headers: {
+  //         //   Authorization: `Bearer ${token}`,
+  //         // },
+  //          withCredentials: true,
+  //       }
+  //     );
+  //     setCommentaire("");
+  //     setNote(5);
+  //     fetchAvis();
+  //     alert("Avis envoyé !");
+  //   } catch (error) {
+  //     alert(error.response?.data?.message || "Erreur lors de l'envoi de l'avis.");
+  //   }
+  // };
+
   const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    if (!user) {
-      alert("Vous devez être connecté pour laisser un avis.");
-      return;
-    }
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        "http://localhost:8001/api/reviews/add-review",
-        {
-          id_produit: produit.id_produit,
-          note,
-          commentaire,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setCommentaire("");
-      setNote(5);
-      fetchAvis();
-      alert("Avis envoyé !");
-    } catch (error) {
-      alert(error.response?.data?.message || "Erreur lors de l'envoi de l'avis.");
-    }
-  };
+  e.preventDefault();
+  if (!user) {
+    alert("Vous devez être connecté pour laisser un avis.");
+    return;
+  }
+  try {
+    await axiosInstance.post("/reviews/add-review", {
+      id_produit: produit.id_produit,
+      note,
+      commentaire,
+    });
+    setCommentaire("");
+    setNote(5);
+    fetchAvis();
+    alert("Avis envoyé !");
+  } catch (error) {
+    alert(error.response?.data?.message || "Erreur lors de l'envoi de l'avis.");
+  }
+};
+
 
   // Suppression d'avis
+  // const handleDeleteReview = async (id_avis) => {
+  //   if (!window.confirm("Supprimer cet avis ?")) return;
+  //   try {
+  //     // const token = localStorage.getItem("token");
+  //     await axios.delete(
+  //       `http://localhost:8001/api/reviews/delete-review/${id_avis}`,
+  //       {
+  //         // headers: {
+  //         //   Authorization: `Bearer ${token}`,
+  //         // },
+  //          withCredentials: true,
+  //       }
+  //     );
+  //     fetchAvis();
+  //   } catch (error) {
+  //     alert(error.response?.data?.message || "Erreur lors de la suppression.");
+  //   }
+  // };
+
   const handleDeleteReview = async (id_avis) => {
-    if (!window.confirm("Supprimer cet avis ?")) return;
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(
-        `http://localhost:8001/api/reviews/delete-review/${id_avis}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      fetchAvis();
-    } catch (error) {
-      alert(error.response?.data?.message || "Erreur lors de la suppression.");
-    }
-  };
+  if (!window.confirm("Supprimer cet avis ?")) return;
+  try {
+    await axiosInstance.delete(`/reviews/delete-review/${id_avis}`);
+    fetchAvis();
+  } catch (error) {
+    alert(error.response?.data?.message || "Erreur lors de la suppression.");
+  }
+};
+
 
   // Préparation modification
   const handleEditClick = (avis) => {
@@ -157,28 +259,44 @@ const ProductDetailPage = () => {
   };
 
   // Modification d'avis
+  // const handleEditReview = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     // const token = localStorage.getItem("token");
+  //     await axios.put(
+  //       `http://localhost:8001/api/reviews/update-review/${editId}`,
+  //       {
+  //         note: editNote,
+  //         commentaire: editCommentaire,
+  //       },
+  //       {
+  //         // headers: {
+  //         //   Authorization: `Bearer ${token}`,
+  //         // },
+  //          withCredentials: true,
+  //       }
+  //     );
+  //     setEditId(null);
+  //     fetchAvis();
+  //   } catch (error) {
+  //     alert(error.response?.data?.message || "Erreur lors de la modification.");
+  //   }
+  // };
+
   const handleEditReview = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("token");
-      await axios.put(
-        `http://localhost:8001/api/reviews/update-review/${editId}`,
-        {
-          note: editNote,
-          commentaire: editCommentaire,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setEditId(null);
-      fetchAvis();
-    } catch (error) {
-      alert(error.response?.data?.message || "Erreur lors de la modification.");
-    }
-  };
+  e.preventDefault();
+  try {
+    await axiosInstance.put(`/reviews/update-review/${editId}`, {
+      note: editNote,
+      commentaire: editCommentaire,
+    });
+    setEditId(null);
+    fetchAvis();
+  } catch (error) {
+    alert(error.response?.data?.message || "Erreur lors de la modification.");
+  }
+};
+
 
   if (loading) return <p>Chargement...</p>;
   if (!produit) return <p>Produit non trouvé.</p>;
@@ -329,155 +447,42 @@ return (
           </ul>
         )}
       </div>
+
+        {/* Produits similaires */}
+                {suggestions.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6">Produits similaires</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {suggestions.map((prod) => (
+                <div
+  key={prod.id_produit}
+  className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow hover:shadow-lg transition"
+>
+  {prod.imageObjectUrl && (
+    <img
+      src={prod.imageObjectUrl}
+      alt={prod.titre}
+      className="w-full h-40 object-cover rounded mb-3"
+    />
+  )}
+  <h3 className="text-lg font-semibold mb-2">{prod.titre}</h3>
+  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">{prod.description}</p>
+  <p className="font-bold text-green-600 dark:text-green-400 mb-2">{prod.prix} €</p>
+  <a
+    href={`/produit/${prod.id_produit}`}
+    className="text-blue-600 hover:underline"
+  >
+    Voir le produit
+  </a>
+</div>
+              ))}
+            </div>
+          </div>
+        )}
+
     </div>
   </div>
 );
-
-
-
-
-  // return (
-  //     <div className="mx-auto p-6 text-center text-black dark:text-white min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-blue-100 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
-  //     <h1 className="text-2xl font-bold mb-4">{produit.titre}</h1>
-  //     {produit.image_url && (
-  //       <img
-  //         src={produit.image_url}
-  //         alt={produit.nom}
-  //         style={{
-  //           maxWidth: "300px",
-  //           maxHeight: "400px",
-  //           width: "100%",
-  //           objectFit: "cover",
-  //           borderRadius: "8px",
-  //           marginBottom: "1rem",
-  //           display: "block",
-  //           marginLeft: "auto",
-  //           marginRight: "auto"
-  //         }}
-  //       />
-  //     )}
-  //     <p className="text-gray-600 mb-2">{produit.description}</p>
-  //     <p className="text-lg font-bold">{produit.prix} €</p>
-  //     <button
-  //       onClick={handleAddToCart}
-  //       className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4 mr-2"
-  //     >
-  //       Ajouter au panier
-  //     </button>
-  //     <button
-  //       onClick={handleAddToWishlist}
-  //       className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 mb-4"
-  //     >
-  //       Ajouter à la wishlist
-  //     </button>
-
-  //     {/* Formulaire d'avis */}
-  //     {isAuthenticated ? (
-  //       <div className="mb-6">
-  //         <h2 className="text-xl font-semibold mb-2">Laisser un avis</h2>
-  //         <form onSubmit={handleSubmitReview} className="space-y-4">
-  //           <div>
-  //             <label htmlFor="note" className="block font-medium">Note :</label>
-  //             <select
-  //               id="note"
-  //               value={note}
-  //               onChange={(e) => setNote(Number(e.target.value))}
-  //               className="border p-2 rounded w-full"
-  //             >
-  //               {[1, 2, 3, 4, 5].map((n) => (
-  //                 <option key={n} value={n}>{n} étoile{n > 1 ? "s" : ""}</option>
-  //               ))}
-  //             </select>
-  //           </div>
-  //           <div>
-  //             <label htmlFor="commentaire" className="block font-medium">Commentaire :</label>
-  //             <textarea
-  //               id="commentaire"
-  //               value={commentaire}
-  //               onChange={(e) => setCommentaire(e.target.value)}
-  //               className="border p-2 rounded w-full"
-  //               rows={3}
-  //               required
-  //             ></textarea>
-  //           </div>
-  //           <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-  //             Envoyer l’avis
-  //           </button>
-  //         </form>
-  //       </div>
-  //     ) : (
-  //       <p className="text-gray-600 italic">Vous devez être connecté pour laisser un avis.</p>
-  //     )}
-
-  //     {/* Liste des avis */}
-  //     <div>
-  //       <h2 className="text-xl font-semibold mb-2">Avis des clients</h2>
-  //       {avis.length === 0 ? (
-  //         <p>Aucun avis pour ce produit.</p>
-  //       ) : (
-  //         <ul className="space-y-4">
-  //           {avis.map((a) => (
-  //             <li key={a.id_avis} className="border p-3 rounded bg-gray-50">
-  //               <div className="flex items-center justify-between">
-  //                 <div>
-  //                   <span className="font-semibold">{a.prenom || "Utilisateur"}</span>
-  //                   {" - "}
-  //                   <span>{a.note} / 5</span>
-  //                 </div>
-  //                 {canEditOrDelete(a) && (
-  //                   <div>
-  //                     <button
-  //                       onClick={() => handleEditClick(a)}
-  //                       className="text-blue-600 hover:underline mr-2"
-  //                     >
-  //                       Modifier
-  //                     </button>
-  //                     <button
-  //                       onClick={() => handleDeleteReview(a.id_avis)}
-  //                       className="text-red-600 hover:underline"
-  //                     >
-  //                       Supprimer
-  //                     </button>
-  //                   </div>
-  //                 )}
-  //               </div>
-  //               {editId === a.id_avis ? (
-  //                 <form onSubmit={handleEditReview} className="mt-2 space-y-2">
-  //                   <select
-  //                     value={editNote}
-  //                     onChange={(e) => setEditNote(Number(e.target.value))}
-  //                     className="border p-1 rounded"
-  //                   >
-  //                     {[1, 2, 3, 4, 5].map((n) => (
-  //                       <option key={n} value={n}>{n} étoile{n > 1 ? "s" : ""}</option>
-  //                     ))}
-  //                   </select>
-  //                   <textarea
-  //                     value={editCommentaire}
-  //                     onChange={(e) => setEditCommentaire(e.target.value)}
-  //                     className="border p-1 rounded w-full"
-  //                     rows={2}
-  //                     required
-  //                   ></textarea>
-  //                   <div>
-  //                     <button type="submit" className="bg-green-600 text-white px-2 py-1 rounded mr-2">
-  //                       Enregistrer
-  //                     </button>
-  //                     <button type="button" onClick={handleCancelEdit} className="bg-gray-400 text-white px-2 py-1 rounded">
-  //                       Annuler
-  //                     </button>
-  //                   </div>
-  //                 </form>
-  //               ) : (
-  //                 <p className="mt-1">{a.commentaire}</p>
-  //               )}
-  //             </li>
-  //           ))}
-  //         </ul>
-  //       )}
-  //     </div>
-  //   </div>
-  // );
 };
 
 export default ProductDetailPage;

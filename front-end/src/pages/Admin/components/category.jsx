@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import axiosInstance from "../../../services/axiosInstance";
 
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
@@ -10,11 +11,13 @@ const CategoryList = () => {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    axios
-      .get("http://localhost:8001/api/category")
-      .then((res) => setCategories(res.data))
-      .catch((err) => console.error("Erreur récupération catégories :", err));
-  }, []);
+  axiosInstance
+    .get("/category")
+    .then((res) => setCategories(res.data))
+    .catch((err) =>
+      console.error("Erreur récupération catégories :", err)
+    );
+}, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -25,16 +28,14 @@ const CategoryList = () => {
 
     const method = editingId ? "put" : "post";
     const url = editingId
-      ? `http://localhost:8001/api/category/update/${editingId}`
-      : "http://localhost:8001/api/category/add";
+    ? `/category/update/${editingId}`
+    : "/category/add";
 
-    const token = localStorage.getItem("token");
-    const headers = {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-    };
-
-    axios({ method, url, data: form, headers })
+    axiosInstance({
+      method,
+      url,
+      data: form,
+    })
       .then(() => axios.get("http://localhost:8001/api/category"))
       .then((res) => {
         setCategories(res.data);
@@ -46,11 +47,8 @@ const CategoryList = () => {
 
   const handleDelete = (id) => {
     if (window.confirm("Supprimer cette catégorie ?")) {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-      axios
-        .delete(`http://localhost:8001/api/category/delete/${id}`, { headers })
+      axiosInstance
+        .delete(`/category/delete/${id}`)
         .then(() => {
           setCategories(categories.filter((cat) => cat.id_categorie !== id));
         })
@@ -75,7 +73,7 @@ const filteredCategories = categories
     a.nom_categorie.localeCompare(b.nom_categorie, 'fr', { sensitivity: 'base' })
   );
 
-  // 🧠 Pagination
+  //  Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentCategories = filteredCategories.slice(indexOfFirstItem, indexOfLastItem);
@@ -90,7 +88,8 @@ const highlightText = (text, term) => {
   if (!term) return text;
   const regex = new RegExp(`(${term})`, "gi");
   return text.split(regex).map((part, index) =>
-    regex.test(part) ? <mark key={index} className="bg-yellow-400 dark:bg-yellow-300">{part}</mark> : part
+    // regex.test(part) ? <mark key={index} className="bg-yellow-400 dark:bg-yellow-300">{part}</mark> : part
+    regex.test(part) ? <span key={index} className="bg-yellow-300 text-black rounded px-1"> {part} </span> : part
   );
 };
 

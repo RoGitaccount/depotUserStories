@@ -1,113 +1,85 @@
-// import React, { useState, useEffect } from 'react';
-// import { AuthContext } from './AuthContext';
-
-// export const AuthProvider = ({ children }) => {
-//   const [user, setUser] = useState(null);
-//   const [isAuthenticated, setIsAuthenticated] = useState(false);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     const token = localStorage.getItem('token');
-//     const savedUser = localStorage.getItem('user');
-
-//     if (token && savedUser) {
-//       try {
-//         const parsedUser = JSON.parse(savedUser);
-//         setUser(parsedUser);
-//         setIsAuthenticated(true);
-//       } catch (error) {
-//         console.error("Erreur lors du parsing des données utilisateur :", error);
-//         localStorage.removeItem('token');
-//         localStorage.removeItem('user');
-//       }
-//     }
-//     setLoading(false);
-//   }, []);
-
-//   // Dans le return du provider
-//   if (loading) return <div>Chargement...</div>;
-
-//   const login = (userData, token) => {
-//     localStorage.setItem('token', token);
-//     localStorage.setItem('user', JSON.stringify(userData));
-//     setUser(userData);
-//     setIsAuthenticated(true);
-//   };
-
-//   const logout = () => {
-//     localStorage.removeItem('token');
-//     localStorage.removeItem('user');
-//     setUser(null);
-//     setIsAuthenticated(false);
-//   };
-
-//   return (
-//     <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// };
-
-
 import React, { useState, useEffect } from 'react';
 import { AuthContext } from './AuthContext';
-import { jwtDecode } from 'jwt-decode';
+import axiosInstance from "../services/axiosInstance";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Fonction utilitaire pour vérifier si on est sur une page d'authentification
+  const isAuthPage = () => {
+    const authPages = ['/login', '/register', '/verify-code', '/forgot-password', '/resetpassword'];
+    return authPages.includes(window.location.pathname);
+  };
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token && typeof token === "string" && token.split('.').length === 3) {
-      try {
-        const decoded = jwtDecode(token);
-        setUser(decoded);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error("Erreur lors du décodage du token :", error);
-        localStorage.removeItem('token');
+    const checkAuth = async () => {
+      // Ne pas vérifier l'auth sur les pages d'authentification
+      if (isAuthPage()) {
+        console.log('Sur une page d\'auth, pas de vérification automatique');
         setUser(null);
         setIsAuthenticated(false);
+        setLoading(false);
+        return;
       }
-    } else {
+
+      try {
+        console.log('Vérification de l\'authentification...');
+        // L'intercepteur gère automatiquement le refresh si nécessaire
+        const response = await axiosInstance.get('/token/me');
+        console.log('Utilisateur authentifié:', response.data);
+        setUser(response.data);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Erreur lors de la vérification auth:', error);
+        setUser(null);
+        setIsAuthenticated(false);
+        // Ne pas rediriger ici, laisser l'intercepteur s'en charger
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const login = async () => {
+    try {
+      const response = await axiosInstance.get('/token/me');
+      console.log('Login réussi:', response.data);
+      setUser(response.data);
+      setIsAuthenticated(true);
+      return true;
+    } catch (error) {
+      console.error('Erreur lors du login:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await axiosInstance.post('/token/logout');
+      console.log('Logout réussi');
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    } finally {
       setUser(null);
       setIsAuthenticated(false);
     }
-    setLoading(false);
-  }, []);
-
-  if (loading) return <div>Chargement...</div>;
-
-const login = (token) => {
-  if (!token || typeof token !== "string" || token.split('.').length !== 3) {
-    setUser(null);
-    setIsAuthenticated(false);
-    console.error("Token JWT invalide :", token);
-    return;
-  }
-  localStorage.setItem('token', token);
-  try {
-    const decoded = jwtDecode(token);
-    setUser(decoded);
-    setIsAuthenticated(true);
-  } catch (error) {
-    setUser(null);
-    setIsAuthenticated(false);
-    console.error("Erreur lors du décodage du token :", error);
-  }
-};
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    setIsAuthenticated(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
-      {children}
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, loading }}>
+      {loading ? (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 };

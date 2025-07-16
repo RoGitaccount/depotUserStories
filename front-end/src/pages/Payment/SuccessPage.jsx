@@ -2,6 +2,7 @@ import React, { useEffect, useState,useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Success.css'
+import axiosInstance from '../../services/axiosInstance';
 
 
 const SuccessPage = () => {
@@ -25,16 +26,8 @@ const SuccessPage = () => {
           throw new Error('Session ID manquant');
         }
 
-        // Appeler le backend pour traiter la commande
-        await axios.post(
-          'http://localhost:8001/api/order/process-success',
-          { sessionId },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        );
+       await axiosInstance.post('/order/process-success', { sessionId });
+
 
         setLoading(false);
         

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import Footer from "../../components/PageComponents/Footer";
+import axiosInstance from '../../services/axiosInstance';
 
 export default function Inscription() {
   const validationSchema = Yup.object({
@@ -12,6 +13,9 @@ export default function Inscription() {
     password: Yup.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères.').required('Le mot de passe est requis.'),
     accepteConditions: Yup.boolean().oneOf([true], 'Vous devez accepter la politique de confidentialité.'),
   });
+
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const initialValues = {
     prenom: '',
@@ -30,13 +34,12 @@ export default function Inscription() {
         password: values.password,
         role: 'user',
       };
-      await axios.post('http://localhost:8001/api/signup', payload, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-      alert('Inscription réussie !');
+      await axiosInstance.post('/signup', payload);
+      setSuccessMessage('Inscription réussie ! 🎉');
+      setErrorMessage('');
       resetForm();
     } catch (error) {
-      alert(error.response?.data?.message || 'Erreur lors de l\'inscription.');
+      setErrorMessage(error.response?.data?.message || 'Erreur lors de l\'inscription.');
     } finally {
       setSubmitting(false);
     }
@@ -78,10 +81,21 @@ export default function Inscription() {
                 <Field type="checkbox" name="accepteConditions" className="mt-1" />
                 <label className="text-sm dark:text-gray-200">
                   En cochant cette case vous acceptez notre{' '}
-                  <a href="#" className="underline text-blue-600 dark:text-blue-300">politique de confidentialité</a>.
+                  <a href="./confidentialite" className="underline text-blue-600 dark:text-blue-300">politique de confidentialité</a>.
                 </label>
               </div>
               <ErrorMessage name="accepteConditions" component="p" className="text-red-500 text-sm" />
+
+               {successMessage && (
+                <div className="text-green-600 bg-green-100 border border-green-300 p-2 rounded text-sm text-center">
+                  {successMessage}
+                </div>
+              )}
+              {errorMessage && (
+                <div className="text-red-600 bg-red-100 border border-red-300 p-2 rounded text-sm text-center">
+                  {errorMessage}
+                </div>
+              )}
 
               <button
                 type="submit"

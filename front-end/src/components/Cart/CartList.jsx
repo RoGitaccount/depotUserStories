@@ -15,7 +15,7 @@ const CartList = ({ items, onRemove }) => {
           {/* Lien autour de l'image */}
           <Link to={`/produit/${item.id_produit}`}>
             <img
-              src={item.image_url}
+              src={item.image}
               alt={item.titre}
               className="w-28 h-28 object-cover rounded shadow bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 p-1  hover:scale-105 hover:opacity-90 transition duration-200 ease-in-out"
             />
