@@ -307,21 +307,50 @@ const ProductDetailPage = () => {
     return user.id === avisItem.id_user || user.role === "admin";
   };
 
-return (
-  <div className="mx-auto p-6 min-h-screen bg-gradient-to-b from-blue-100 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300 text-black dark:text-white">
-    <div className="max-w-6xl mx-auto">
-      <div className="flex flex-col md:flex-row gap-8 items-start mb-10 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-        {/* Colonne gauche : infos produit */}
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold mb-4">{produit.titre}</h1>
-            {produit.imageObjectUrl && (
-              <img
-                src={produit.imageObjectUrl}
-                alt={produit.nom}
-                className="w-full max-w-md object-cover rounded-lg mb-4"
-              />
-            )}
-          <p className="text-gray-700 dark:text-gray-300 mb-4">{produit.description}</p>
+  return (
+    <div className="mx-auto p-6 min-h-screen bg-gradient-to-b from-blue-100 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300 text-black dark:text-white">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col md:flex-row gap-8 items-start mb-10 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+          {/* Colonne gauche : infos produit */}
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold mb-4">{produit.titre}</h1>
+              {produit.imageObjectUrl && (
+                <img
+                  src={produit.imageObjectUrl}
+                  alt={produit.nom}
+                  className="w-full max-w-md object-cover rounded-lg mb-4"
+                />
+              )}
+            <p className="text-gray-700 dark:text-gray-300 mb-4">{produit.description}</p>
+          </div>
+
+          {/* Colonne droite : prix + boutons */}
+          <div className="w-full md:w-1/3 flex flex-col gap-4 items-start">
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{produit.prix} €</p>
+            <p className="text-sm font-medium">
+              Disponibilité :{" "}
+              {produit.stock > 0 ? (
+                <span className="text-green-600 dark:text-green-400">
+                  En stock ({produit.stock})
+                </span>
+              ) : (
+                <span className="text-red-600 dark:text-red-400">Rupture de stock</span>
+              )}
+            </p>
+
+            <button
+              onClick={handleAddToCart}
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Ajouter au panier
+            </button>
+            <button
+              onClick={handleAddToWishlist}
+              className="w-full bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700"
+            >
+              Ajouter à la wishlist
+            </button>
+          </div>
         </div>
 
         {/* Colonne droite : prix + boutons */}
@@ -449,35 +478,36 @@ return (
       </div>
 
         {/* Produits similaires */}
-                {suggestions.length > 0 && (
-          <div className="mt-12">
+        {suggestions.length > 0 && (
+        <div className="mt-12">
             <h2 className="text-2xl font-bold mb-6">Produits similaires</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {suggestions.map((prod) => (
                 <div
-  key={prod.id_produit}
-  className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow hover:shadow-lg transition"
->
-  {prod.imageObjectUrl && (
-    <img
-      src={prod.imageObjectUrl}
-      alt={prod.titre}
-      className="w-full h-40 object-cover rounded mb-3"
-    />
-  )}
-  <h3 className="text-lg font-semibold mb-2">{prod.titre}</h3>
-  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">{prod.description}</p>
-  <p className="font-bold text-green-600 dark:text-green-400 mb-2">{prod.prix} €</p>
-  <a
-    href={`/produit/${prod.id_produit}`}
-    className="text-blue-600 hover:underline"
-  >
-    Voir le produit
-  </a>
-</div>
+                  key={prod.id_produit}
+                  className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow hover:shadow-lg transition"
+                >
+                  {prod.imageObjectUrl && (
+                    <img
+                      src={prod.imageObjectUrl}
+                      alt={prod.titre}
+                      className="w-full h-40 object-cover rounded mb-3"
+                    />
+                  )}
+                  <h3 className="text-lg font-semibold mb-2">{prod.titre}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">{prod.description}</p>
+                  <p className="font-bold text-green-600 dark:text-green-400 mb-2">{prod.prix} €</p>
+                  <a
+                    href={`/produit/${prod.id_produit}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Voir le produit
+                  </a>
+                </div>
               ))}
             </div>
-          </div>
+        </div>
+        
         )}
 
     </div>

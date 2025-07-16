@@ -8,6 +8,22 @@ const CataloguePage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const [sortOption, setSortOption] = useState("default");
+  const sortProducts = (products) => {
+    switch (sortOption) {
+      case "priceAsc":
+        return [...products].sort((a, b) => a.prix - b.prix);
+      case "priceDesc":
+        return [...products].sort((a, b) => b.prix - a.prix);
+      case "nameAsc":
+        return [...products].sort((a, b) => a.titre.localeCompare(b.titre));
+      case "nameDesc":
+        return [...products].sort((a, b) => b.titre.localeCompare(a.titre));
+      default:
+        return products;
+    }
+  };
+  
 
   useEffect(() => {
     fetchCategories();
@@ -87,6 +103,7 @@ const CataloguePage = () => {
       fetchProductsByCategory(categoryId);
     }
   };
+  const sortedProducts = sortProducts(products);
 
  return (
     // <div className="flex min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -125,7 +142,26 @@ const CataloguePage = () => {
       </aside>
 
       {/* Produits */}
+      
       <main className="flex-1 p-6">
+      <div className="mb-4 flex items-center gap-4">
+  <label htmlFor="sort" className="text-sm font-medium">
+    Trier par :
+  </label>
+  <select
+    id="sort"
+    className="border rounded p-2 dark:bg-gray-700 dark:text-white"
+    value={sortOption}
+    onChange={(e) => setSortOption(e.target.value)}
+  >
+    <option value="default">Par défaut</option>
+    <option value="priceAsc">Prix croissant</option>
+    <option value="priceDesc">Prix décroissant</option>
+    <option value="nameAsc">Nom A-Z</option>
+    <option value="nameDesc">Nom Z-A</option>
+  </select>
+</div>
+
         <h1 className="text-2xl font-bold mb-4">
           {selectedCategoryId
             ? `Catégorie : ${categories.find((c) => c.id_categorie === selectedCategoryId)?.nom_categorie}`
@@ -138,7 +174,7 @@ const CataloguePage = () => {
           <p>Aucun produit trouvé.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {products.map((product) => (
+            {sortedProducts.map((product) => (
               <div
                 key={product.id_produit}
                 onClick={() => navigate(`/produit/${product.id_produit}`)}
