@@ -105,7 +105,7 @@ export function Delete_payment(client, id_paiement, callback) {
         adresse_ligne1 = COALESCE(VALUES(adresse_ligne1), adresse_ligne1),
         adresse_ligne2 = COALESCE(VALUES(adresse_ligne2), adresse_ligne2),
         ville = COALESCE(VALUES(ville), ville),
-        region = VALUES(region),
+        region = COALESCE(VALUES(region), region),
         code_postal = COALESCE(VALUES(code_postal), code_postal),
         pays = COALESCE(VALUES(pays), pays),
         telephone = COALESCE(VALUES(telephone), telephone)
@@ -125,10 +125,27 @@ export function Delete_payment(client, id_paiement, callback) {
   }
 
   // Lire les infos de facturation d'un utilisateur
+  // export function Get_billing_info(client, id_user, callback) {
+  //   const query = `SELECT * FROM informations_facturation WHERE id_user = ?`;
+  //   client.query(query, [id_user], callback);
+  // }
+
+    // Lire les infos de facturation d'un utilisateur et son mail
   export function Get_billing_info(client, id_user, callback) {
-    const query = `SELECT * FROM informations_facturation WHERE id_user = ?`;
-    client.query(query, [id_user], callback);
-  }
+  const query = `
+    SELECT 
+      i.*, 
+      u.email 
+    FROM 
+      informations_facturation i
+    JOIN 
+      users u ON i.id_user = u.id_user
+    WHERE 
+      i.id_user = ?
+  `;
+  client.query(query, [id_user], callback);
+}
+
 
   // Mettre à jour les infos de facturation d'un utilisateur ( rgpd )
   export function Update_billing_info(client, {

@@ -35,9 +35,10 @@ CREATE TABLE IF NOT EXISTS produits (
     titre VARCHAR(255) NOT NULL,
     description TEXT,
     prix DECIMAL(10, 2) NOT NULL, -- prix actuel du produit
-    image_url VARCHAR(255),
+    image VARCHAR(255),
     date_creation DATETIME DEFAULT CURRENT_TIMESTAMP,
-    date_modification DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    date_modification DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    image LONGBLOB
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- avis
@@ -166,7 +167,23 @@ CREATE TABLE IF NOT EXISTS paiements (
 CREATE TABLE IF NOT EXISTS logs (
     id_logs INT AUTO_INCREMENT PRIMARY KEY,
     id_user INT,
-    activite VARCHAR(255),
+    endpoint VARCHAR(255) NOT NULL,         -- ex: "/cart/remove"
+    methode VARCHAR(10) NOT NULL,           -- GET, POST, PUT, DELETE
+    statut INT DEFAULT 200,                 -- Code HTTP (utile pour les erreurs)
+    activite TEXT,                          -- Description plus complète
+    ip_address VARCHAR(45),                 -- Adresse IP du client
+    user_agent TEXT,                        -- Navigateur ou appli
     date_activite DATETIME DEFAULT CURRENT_TIMESTAMP,
+    occurences INT DEFAULT 1,
+    FOREIGN KEY (id_user) REFERENCES users(id_user) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- paniers temporaires pour paiement Stripe
+CREATE TABLE IF NOT EXISTS paniers_temp (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_user INT NOT NULL,
+    session_id VARCHAR(255) NOT NULL, -- ID de session Stripe
+    cart_items JSON NOT NULL,         -- Contenu du panier (JSON)
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_user) REFERENCES users(id_user)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

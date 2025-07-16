@@ -1,6 +1,9 @@
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+
+// Router
 import signupRouter from "./routes/signup.js";
 import signinRouter from "./routes/signin.js";
 import passwordResetRouter from "./routes/passwordReset.js";
@@ -10,11 +13,16 @@ import offerRouter from "./routes/offer.js";
 import categoryRouter from "./routes/category.js"
 import productCategoryRouter from "./routes/productCategory.js";
 import rgpdRouter from "./routes/rgpd.js"
-
 import stripeRouter from './routes/stripe.js';
 import cartRouter from './routes/cart.js';
 import orderRouter from './routes/order.js';
 import wishlistRouter from './routes/wishlist.js';
+import userRouteur from './routes/UserAdminManagement.js';
+import logsRouter from "./routes/logs.js";
+import userdashboardRouter from "./routes/UserDashboard.js"
+import tokenRouteur from './routes/token.js';
+
+
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
@@ -22,10 +30,28 @@ import swaggerJSDoc from 'swagger-jsdoc';
 const app = express();
 const port = 8001;
 
-// Configuration CORS : autorise seulement le front local
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:8081',
+  'http://127.0.0.1:8081'
+];
+
+// Middleware CORS avec cookies (credentials: true)
 app.use(cors({
-  origin: "http://localhost:5173"
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // autorise Postman / mobile
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error(`Origine ${origin} non autorisée par CORS.`), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true, // nécessaire pour envoyer les cookies
 }));
+
+// Middleware pour parser les cookies
+app.use(cookieParser());
+
 
 // Configurer swagger-jsdoc
 const swaggerDefinition = {
@@ -65,11 +91,14 @@ app.use("/api/offers", offerRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/rgpd", rgpdRouter);
 app.use("/api/productCategory", productCategoryRouter);
-
 app.use('/api/stripe', stripeRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/wishlist", wishlistRouter);
+app.use("/api/user", userRouteur);
+app.use("/api/logs", logsRouter);
+app.use("/api/userdashboard", userdashboardRouter);
+app.use("/api/token", tokenRouteur);
 
 app.get("/", (req, res) => res.send('<a href="http://localhost:8001/api-docs/" target="_blank">lien pour tester les divers routes</a> '));
 

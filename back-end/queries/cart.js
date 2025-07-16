@@ -14,7 +14,7 @@ export function Get_cart(client, id_user, callback) {
       p.id_produit,
       prod.titre,
       prod.prix,
-      prod.image_url,
+      prod.image,
       p.date_ajout
     FROM panier p
     JOIN produits prod ON p.id_produit = prod.id_produit

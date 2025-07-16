@@ -31,7 +31,7 @@ export function Get_user_wishlist(client, id_user, callback) {
     SELECT 
       w.id_produit,
       p.titre,
-      p.image_url,
+      p.image,
       p.prix,
       w.date_ajout
     FROM wishlist w

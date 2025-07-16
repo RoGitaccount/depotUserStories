@@ -92,9 +92,9 @@ export function toggle_availability(client,id_promotion,callback)
 }
 
 // Modifier une promotions
-export function Update_offer(client, { id_promotion,code, montant_reduction, date_expiration }, callback) {
-  const query = "UPDATE promotions SET code = ?, montant_reduction = ?, date_expiration = ? WHERE id_promotion = ?";
-  client.query(query, [code, montant_reduction, date_expiration,id_promotion], (err, results) => {
+export function Update_offer(client, { id_promotion, code, montant_reduction, date_expiration, est_actif }, callback) {
+  const query = "UPDATE promotions SET code = ?, montant_reduction = ?, date_expiration = ?, est_actif = ? WHERE id_promotion = ?";
+  client.query(query, [code, montant_reduction, date_expiration, est_actif, id_promotion], (err, results) => {
     if (err) {
       return callback(err, null);
     }
