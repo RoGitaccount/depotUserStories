@@ -1,12 +1,18 @@
 import React from 'react';
 
-const CartSummary = ({ total = 0, reduction = 0, reductionPercent = 0 }) => {
-  const TVA = 0.2; // taux par défaut à 20%
+const CartSummary = ({total = 0, reduction = 0, reductionPercent = 0, pays = "France", numeroTva = ""}) => {
+  const PaysNumeroTva = (numeroTva || '').trim().toUpperCase();
+  const codePaysTVA = PaysNumeroTva.slice(0, 2);
+  let tauxTVA = 0;
+  if (pays.toLowerCase() === "france" || codePaysTVA === "FR") {
+    tauxTVA = 0.2;
+  }
   const sousTotal = total;
-  const montantTVA = sousTotal * TVA;
+  const montantTVA = sousTotal * tauxTVA;
   const prixTTC = sousTotal + montantTVA;
   const montantReduction = reduction;
-  const prixTTCAvecPromo = (sousTotal - reduction) * (1 + TVA);
+  const prixTTCAvecPromo = (sousTotal - reduction) * (1 + tauxTVA);
+
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white dark:bg-gray-900 text-black dark:text-white rounded-lg shadow-md transition-colors duration-300 bg-white dark:bg-gray-800/80 backdrop-blur">
@@ -18,7 +24,7 @@ const CartSummary = ({ total = 0, reduction = 0, reductionPercent = 0 }) => {
       </div>
 
       <div className="flex justify-between py-1 border-b border-gray-300 dark:border-gray-700">
-        <span>TVA (20%)</span>
+        <span>TVA ({(tauxTVA * 100).toFixed(0)}%)</span>
         <span>{montantTVA.toFixed(2)}€</span>
       </div>
 

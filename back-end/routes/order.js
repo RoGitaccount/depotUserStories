@@ -22,8 +22,6 @@ import {
 } from "../queries/order.js";
 import { GetUserById } from '../queries/User.js';
 
-
-
 const router = express.Router();
 const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -79,9 +77,6 @@ router.post(
             }
           );
         });
-
-        // (optionnel) Supprimer le panier temporaire après traitement
-        client.query("DELETE FROM paniers_temp WHERE session_id = ? AND id_user = ?", [sessionId, id_user], () => {});
 
         // 4. Générer la facture PDF dans un dossier dédié
         const uploadsDir = path.join(process.cwd(), 'uploads');
@@ -436,6 +431,19 @@ await new Promise((resolve, reject) => {
         });
       }
 
+      //12bis Supprimer le panier temporaire APRÈS tous les enregistrements réussis
+      await new Promise((resolve, reject) => {
+        client.query(
+          "DELETE FROM paniers_temp WHERE session_id = ? AND id_user = ?",
+          [sessionId, id_user],
+          (err) => {
+            if (err) reject(err);
+            else resolve();
+          }
+        );
+      });
+
+
       // 13. Commit de la transaction
       client.commit((err) => {
         if (err) reject(err);
@@ -449,11 +457,6 @@ await new Promise((resolve, reject) => {
 
 // Maintenant id_commande et facture_token sont accessibles ici
 res.json({ success: true, id_commande, facture_token });
-
-
-
-
-
       } catch (error) {
         console.error('Erreur lors du traitement de la commande:', error);
 
@@ -621,8 +624,5 @@ router.delete(
     });
   }
 );
-
-
-
 
 export default router;
