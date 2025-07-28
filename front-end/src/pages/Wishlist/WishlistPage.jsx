@@ -9,6 +9,8 @@ const WishlistPage = () => {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const hasStock = wishlist.some((produit) => produit.stock > 0);
+
 
   useEffect(() => {
     loadWishlist();
@@ -98,12 +100,34 @@ const WishlistPage = () => {
 
 const handleAddAllToCart = async () => {
   try {
-    await axiosInstance.post('/wishlist/add_all_to_cart', {});
+    const produitsEnStock = wishlist.filter(produit => Number(produit.stock) > 0);
+
+    if (produitsEnStock.length === 0) {
+      alert("Aucun produit en stock à ajouter.");
+      return;
+    }
+
+    for (const produit of produitsEnStock) {
+      try {
+        console.log(JSON.stringify(produit, null, 2));
+        console.log(JSON.stringify(produitsEnStock, null, 2));
+        await axiosInstance.post(`/wishlist/add_to_cart/${produit.id_produit}`);
+      } catch (err) {
+        console.warn(`Erreur lors de l'ajout du produit ID ${produit.id_produit} :`, err.response?.data || err.message);
+        // Optionnel : continuer ou interrompre selon ton besoin
+      }
+    }
+
+    alert("Les produits en stock ont été ajoutés au panier.");
     loadWishlist();
-  } catch {
-    alert("Erreur lors de l'ajout de tous les produits au panier.");
+  } catch (error) {
+    console.error("Erreur globale :", error);
+    alert("Erreur lors de l'ajout des produits au panier.");
   }
 };
+
+
+
 
 if (error === "Vous devez être connecté pour accéder à votre wishlist.") {
   return (
@@ -146,12 +170,14 @@ return (
             <div className="p-6 rounded shadow bg-white dark:bg-gray-800/80 backdrop-blur">
               <h2 className="text-xl font-semibold mb-4">Actions</h2>
               <div className="flex flex-col gap-4">
-                <button
-                  onClick={handleAddAllToCart}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-                >
-                  Ajouter tous les produits au panier
-                </button>
+                {hasStock && (
+                  <button
+                    onClick={handleAddAllToCart}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                  >
+                    Ajouter tous les produits au panier
+                  </button>
+                )}
                 <button
                   onClick={handleClear}
                   className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"

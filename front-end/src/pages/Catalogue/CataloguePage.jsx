@@ -19,10 +19,17 @@ const CataloguePage = () => {
         return [...products].sort((a, b) => a.titre.localeCompare(b.titre));
       case "nameDesc":
         return [...products].sort((a, b) => b.titre.localeCompare(a.titre));
+      case "stockAsc":
+        return [...products].sort((a, b) => a.stock - b.stock);
+      case "stockDesc":
+        return [...products].sort((a, b) => b.stock - a.stock);
+      case "ratingDesc":
+        return [...products].sort((a, b) => b.note_moyenne - a.note_moyenne);
       default:
         return products;
     }
   };
+  
   
 
   useEffect(() => {
@@ -159,6 +166,9 @@ const CataloguePage = () => {
     <option value="priceDesc">Prix décroissant</option>
     <option value="nameAsc">Nom A-Z</option>
     <option value="nameDesc">Nom Z-A</option>
+    <option value="stockAsc">Petit stock</option>
+    <option value="stockDesc">Grand stock</option>
+    <option value="ratingDesc">Meilleure note</option>
   </select>
 </div>
 
@@ -203,6 +213,9 @@ const CataloguePage = () => {
                 </p>
                 <p className="mb-2">{product.description}</p>
                 <p className="font-bold">{product.prix} €</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {product.note_moyenne !== null ? `${product.note_moyenne} étoile${product.note_moyenne > 1 ? "s" : ""}` : "Aucune note"}
+                </p>
               </div>
             ))}
           </div>

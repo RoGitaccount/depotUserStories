@@ -117,7 +117,7 @@ const ProductDetailPage = () => {
   //   }
   // };
 
-  const handleAddToCart = async () => {
+const handleAddToCart = async () => {
   try {
     await axiosInstance.post(`/wishlist/add_to_cart/${produit.id_produit}`, {});
     alert("Produit ajouté au panier !");
@@ -127,28 +127,7 @@ const ProductDetailPage = () => {
   }
 };
 
-
-  // const handleAddToWishlist = async () => {
-  //   try {
-  //     // const token = localStorage.getItem("token");
-  //     await axios.post(
-  //       `http://localhost:8001/api/wishlist/add/${produit.id_produit}`,
-  //       {},
-  //       {
-  //         // headers: {
-  //         //   Authorization: `Bearer ${token}`,
-  //         // },
-  //          withCredentials: true,
-  //       }
-  //     );
-  //     alert("Produit ajouté à la wishlist !");
-  //   } catch (error) {
-  //     console.error("Erreur ajout wishlist :", error);
-  //     alert("Erreur lors de l'ajout à la wishlist.");
-  //   }
-  // };
-
-  const handleAddToWishlist = async () => {
+const handleAddToWishlist = async () => {
   try {
     await axiosInstance.post(`/wishlist/add/${produit.id_produit}`, {});
     alert("Produit ajouté à la wishlist !");
@@ -157,39 +136,6 @@ const ProductDetailPage = () => {
     alert("Erreur lors de l'ajout à la wishlist.");
   }
 };
-
-
-  // Ajout d'avis
-  // const handleSubmitReview = async (e) => {
-  //   e.preventDefault();
-  //   if (!user) {
-  //     alert("Vous devez être connecté pour laisser un avis.");
-  //     return;
-  //   }
-  //   try {
-  //     // const token = localStorage.getItem("token");
-  //     await axios.post(
-  //       "http://localhost:8001/api/reviews/add-review",
-  //       {
-  //         id_produit: produit.id_produit,
-  //         note,
-  //         commentaire,
-  //       },
-  //       {
-  //         // headers: {
-  //         //   Authorization: `Bearer ${token}`,
-  //         // },
-  //          withCredentials: true,
-  //       }
-  //     );
-  //     setCommentaire("");
-  //     setNote(5);
-  //     fetchAvis();
-  //     alert("Avis envoyé !");
-  //   } catch (error) {
-  //     alert(error.response?.data?.message || "Erreur lors de l'envoi de l'avis.");
-  //   }
-  // };
 
   const handleSubmitReview = async (e) => {
   e.preventDefault();
@@ -338,12 +284,15 @@ const ProductDetailPage = () => {
               )}
             </p>
 
-            <button
-              onClick={handleAddToCart}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Ajouter au panier
-            </button>
+            {produit.stock > 0 && (
+              <button
+                onClick={handleAddToCart}
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Ajouter au panier
+              </button>
+            )}
+
             <button
               onClick={handleAddToWishlist}
               className="w-full bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700"
@@ -351,23 +300,6 @@ const ProductDetailPage = () => {
               Ajouter à la wishlist
             </button>
           </div>
-        </div>
-
-        {/* Colonne droite : prix + boutons */}
-        <div className="w-full md:w-1/3 flex flex-col gap-4 items-start">
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400">{produit.prix} €</p>
-          <button
-            onClick={handleAddToCart}
-            className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Ajouter au panier
-          </button>
-          <button
-            onClick={handleAddToWishlist}
-            className="w-full bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700"
-          >
-            Ajouter à la wishlist
-          </button>
         </div>
       </div>
 

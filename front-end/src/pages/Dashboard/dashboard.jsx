@@ -143,7 +143,7 @@ useEffect(() => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 p-6">
+      <div className="flex flex-col md:flex-row gap-8 p-6 min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4 sm:px-6 lg:px-8">
       {/* Historique des commandes */}
       <section className="md:w-2/3 w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
         <div className="flex items-center justify-between mb-6">
