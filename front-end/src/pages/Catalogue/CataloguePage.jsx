@@ -30,7 +30,12 @@ const CataloguePage = () => {
     }
   };
   
-  
+  onst [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage, setProductsPerPage] = useState(12);
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const totalPages = Math.ceil(products.length / productsPerPage || 1);
+
 
   useEffect(() => {
     fetchCategories();
@@ -111,6 +116,8 @@ const CataloguePage = () => {
     }
   };
   const sortedProducts = sortProducts(products);
+  const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  
 
  return (
     // <div className="flex min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -159,7 +166,10 @@ const CataloguePage = () => {
     id="sort"
     className="border rounded p-2 dark:bg-gray-700 dark:text-white"
     value={sortOption}
-    onChange={(e) => setSortOption(e.target.value)}
+    onChange={(e) => {
+      setSortOption(e.target.value); // ✅ tri
+      setCurrentPage(1);
+    }}
   >
     <option value="default">Par défaut</option>
     <option value="priceAsc">Prix croissant</option>
@@ -169,6 +179,23 @@ const CataloguePage = () => {
     <option value="stockAsc">Petit stock</option>
     <option value="stockDesc">Grand stock</option>
     <option value="ratingDesc">Meilleure note</option>
+  </select>
+  <label htmlFor="perPage" className="text-sm font-medium">
+    Articles par page :
+  </label>
+  <select
+    id="perPage"
+    className="border rounded p-2 dark:bg-gray-700 dark:text-white"
+    value={productsPerPage}
+    onChange={(e) => {
+      setProductsPerPage(Number(e.target.value));
+      setCurrentPage(1); // reset à page 1
+    }}
+  >
+    <option value={6}>6</option>
+    <option value={12}>12</option>
+    <option value={24}>24</option>
+    <option value={48}>48</option>
   </select>
 </div>
 
@@ -184,7 +211,7 @@ const CataloguePage = () => {
           <p>Aucun produit trouvé.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {sortedProducts.map((product) => (
+            {currentProducts.map((product) => (
               <div
                 key={product.id_produit}
                 onClick={() => navigate(`/produit/${product.id_produit}`)}
@@ -220,6 +247,22 @@ const CataloguePage = () => {
             ))}
           </div>
         )}
+  <div className="flex  justify-center mt-8 space-x-2">
+  {[...Array(totalPages).keys()].map((number) => (
+    <button
+      key={number}
+      onClick={() => setCurrentPage(number + 1)}
+      className={`px-4 py-2 rounded border ${
+        currentPage === number + 1
+          ? "bg-blue-600 text-white"
+          : "bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+      } hover:bg-blue-500 hover:text-white transition`}
+    >
+      {number + 1}
+    </button>
+  ))}
+</div>
+
       </main>
     </div>
   );
