@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import axiosInstance from "../../../services/axiosInstance";
+import PopularCategoriesChart from "./stats/popular-categories";
+import BestProductsByCategoryChart from "./stats/BestProductsByCategoryChart";
+import SimpleBarChartSales from "./stats/sales_and_avg_basket";
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -124,15 +127,16 @@ const OrderList = () => {
     );
   }
 
-  return (
-    <div className="text-black dark:text-white min-h-screen bg-gradient-to-b from-blue-100 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
-      <h2 className="text-2xl font-bold mb-6">Gestion des commandes</h2>
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Formulaire */}
-        <div className="md:w-1/3 w-full bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md h-fit">
-          <h3 className="text-xl font-semibold mb-4">
-            Sélectionner une commande
-          </h3>
+return (
+  <div className="text-black dark:text-white min-h-screen bg-gradient-to-b from-blue-100 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
+    <h2 className="text-2xl font-bold mb-6">Gestion des commandes</h2>
+
+    <div className="flex flex-col md:flex-row gap-8">
+      {/* Colonne de gauche */}
+      <div className="md:w-1/3 w-full flex flex-col gap-8">
+        {/* Sélection commande */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md h-fit">
+          <h3 className="text-xl font-semibold mb-4">Sélectionner une commande</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               name="client"
@@ -141,14 +145,11 @@ const OrderList = () => {
               onChange={handleChange}
               required
               className="w-full px-4 py-2 border rounded-md dark:bg-gray-800 dark:text-white"
-              disabled // Pas modifiable si pas géré côté backend
+              disabled
             />
             <input
               name="total"
-              type="number"
               placeholder="Total (€)"
-              step="0.01"
-              min="0"
               value={form.total}
               onChange={handleChange}
               required
@@ -171,13 +172,24 @@ const OrderList = () => {
               type="submit"
               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
             >
-             Mettre à jour
+              Mettre à jour
             </button>
           </form>
         </div>
 
+        {/* Graphiques sous le formulaire */}
+        <div>
+          <PopularCategoriesChart />
+        </div>
+        <div>
+          <BestProductsByCategoryChart />
+        </div>
+      </div>
+
+      {/* Colonne de droite */}
+      <div className="md:w-2/3 w-full flex flex-col gap-8">
         {/* Liste des commandes */}
-        <div className="md:w-2/3 w-full bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md max-h-[580px] overflow-y-auto">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md max-h-[580px] overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-semibold">Liste des commandes</h3>
             <input
@@ -220,10 +232,11 @@ const OrderList = () => {
                   <td className="px-4 py-2 border capitalize">
                     {statutLabels[order.statut] || "-"}
                   </td>
-                   <td className="border px-4 py-2 text-center space-x-2 border-gray-400 dark:border-gray-500">
+                  <td className="border px-4 py-2 text-center space-x-2 border-gray-400 dark:border-gray-500">
                     <button
                       onClick={() => handleEdit(order)}
-                      className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">
+                      className="text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                    >
                       Modifier
                     </button>
                     <button
@@ -259,9 +272,17 @@ const OrderList = () => {
             </button>
           </div>
         </div>
+
+        {/* Graphique des ventes */}
+        <div>
+          <SimpleBarChartSales />
+        </div>
       </div>
     </div>
-  );
+  </div>
+);
+
+
 };
 
 export default OrderList;

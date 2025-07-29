@@ -1,3 +1,7 @@
+//-----------------------------------------
+//TODO assurer la validité des informations (exemple: pays, eviter que l'utilisateurs mettent "frances", ...)
+//-----------------------------------------
+
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import BillingForm from '../../components/Checkout/BillingForm';
@@ -8,6 +12,13 @@ import { cartService } from '../../services/api';
 import { isAuthenticated, fetchUserFromCookie } from '../../services/auth';
 import axios from 'axios';
 import axiosInstance from '../../services/axiosInstance';
+
+export const isValidTvaFormat = (numeroTva) => {
+  if (!numeroTva) return false;
+  const tva = numeroTva.trim().toUpperCase();
+  const regex = /^[A-Z]{2}[A-Z0-9]{8,12}$/;
+  return regex.test(tva);
+};
 
 const CheckoutPage = () => {
   const location = useLocation();
@@ -103,6 +114,11 @@ const CheckoutPage = () => {
       return;
     }
 
+    if (!isValidTvaFormat(billingData.numeroTva)) {
+      alert("Numéro de TVA invalide");
+      return;
+    }
+
     if (!cartItems || cartItems.length === 0 || (total - reduction) <= 0) {
       alert("Votre panier est vide ou le montant total est nul.");
       return;
@@ -111,8 +127,17 @@ const CheckoutPage = () => {
     try {
       await axiosInstance.post("/rgpd/update_billing_data/me", billingData);
 
-      const TVA = 0.2;
-      const prixTTC = total * (1 + TVA);
+      const PaysNumeroTva = (billingData.numeroTva || '').trim().toUpperCase();
+      const codePaysTVA = PaysNumeroTva.slice(0, 2);
+      const pays = billingData.pays || '';
+
+      let tauxTVA = 0;
+      if (pays.toLowerCase() === "france" || codePaysTVA === "FR") {
+        tauxTVA = 0.2;
+      }
+
+      const prixTTC = total * (1 + tauxTVA);
+
       const montantReduction = (prixTTC * reductionPercent) / 100;
       const prixTTCAvecPromo = prixTTC - montantReduction;
 
@@ -190,6 +215,8 @@ if (cartError || userError) {
             total={total}
             reduction={reduction}
             reductionPercent={reductionPercent}
+            pays={billingInfo?.pays || 'France'}
+            numeroTva={billingInfo?.numeroTva || ''}
           />
         </div>
 

@@ -21,6 +21,7 @@ import userRouteur from './routes/UserAdminManagement.js';
 import logsRouter from "./routes/logs.js";
 import userdashboardRouter from "./routes/UserDashboard.js"
 import tokenRouteur from './routes/token.js';
+import statsRoutes from "./routes/stats.js";
 
 
 
@@ -99,6 +100,7 @@ app.use("/api/user", userRouteur);
 app.use("/api/logs", logsRouter);
 app.use("/api/userdashboard", userdashboardRouter);
 app.use("/api/token", tokenRouteur);
+app.use("/api/stats", statsRoutes);
 
 app.get("/", (req, res) => res.send('<a href="http://localhost:8001/api-docs/" target="_blank">lien pour tester les divers routes</a> '));
 
