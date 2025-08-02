@@ -124,12 +124,6 @@ export function Delete_payment(client, id_paiement, callback) {
     ], callback);
   }
 
-  // Lire les infos de facturation d'un utilisateur
-  // export function Get_billing_info(client, id_user, callback) {
-  //   const query = `SELECT * FROM informations_facturation WHERE id_user = ?`;
-  //   client.query(query, [id_user], callback);
-  // }
-
     // Lire les infos de facturation d'un utilisateur et son mail
   export function Get_billing_info(client, id_user, callback) {
   const query = `

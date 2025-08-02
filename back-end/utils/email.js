@@ -105,7 +105,7 @@ function generateHtmlVersion(text) {
     </head>
     <body>
         <div class="header">
-            <h1>"Cyna"</h1>
+            <h1>Cyna</h1>
         </div>
         <div class="content">
             ${formatVerificationCode(text)}

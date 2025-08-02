@@ -1,14 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Footer from "../../components/PageComponents/Footer";
 
 const CataloguePage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [sortOption, setSortOption] = useState("default");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage, setProductsPerPage] = useState(12);
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const totalPages = Math.ceil(products.length / productsPerPage || 1);
+
+
+
   const navigate = useNavigate();
 
-  const [sortOption, setSortOption] = useState("default");
+  useEffect(() => {
+    fetchCategories();
+    fetchAllProducts();
+  }, []);
+
   const sortProducts = (products) => {
     switch (sortOption) {
       case "priceAsc":
@@ -19,16 +33,16 @@ const CataloguePage = () => {
         return [...products].sort((a, b) => a.titre.localeCompare(b.titre));
       case "nameDesc":
         return [...products].sort((a, b) => b.titre.localeCompare(a.titre));
+      case "stockAsc":
+        return [...products].sort((a, b) => a.stock - b.stock);
+      case "stockDesc":
+        return [...products].sort((a, b) => b.stock - a.stock);
+      case "ratingDesc":
+        return [...products].sort((a, b) => b.note_moyenne - a.note_moyenne);
       default:
         return products;
     }
   };
-  
-
-  useEffect(() => {
-    fetchCategories();
-    fetchAllProducts();
-  }, []);
 
   const fetchCategories = async () => {
     try {
@@ -45,34 +59,7 @@ const CataloguePage = () => {
       setLoading(true);
       const res = await fetch("http://localhost:8001/api/products");
       const data = await res.json();
-  
-      const productsWithBlobImages = await Promise.all(
-        data.map(async (product) => {
-          if (product.image) {
-            const blobRes = await fetch(`http://localhost:8001/api/products/${product.id_produit}/image`);
-            const blob = await blobRes.blob();
-            const imageUrl = URL.createObjectURL(blob);
-            return { ...product, image_url: imageUrl }; // on remplace image_url par le blob transformé
-          }
-          return product;
-        })
-      );
-  
-      setProducts(productsWithBlobImages);
-    } catch (error) {
-      console.error("Erreur chargement produits :", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
 
-  const fetchProductsByCategory = async (categoryId) => {
-    try {
-      setLoading(true);
-      const res = await fetch(`http://localhost:8001/api/productCategory/categorie/${categoryId}`);
-      const data = await res.json();
-  
       const productsWithBlobImages = await Promise.all(
         data.map(async (product) => {
           if (product.image) {
@@ -84,7 +71,33 @@ const CataloguePage = () => {
           return product;
         })
       );
-  
+
+      setProducts(productsWithBlobImages);
+    } catch (error) {
+      console.error("Erreur chargement produits :", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProductsByCategory = async (categoryId) => {
+    try {
+      setLoading(true);
+      const res = await fetch(`http://localhost:8001/api/productCategory/categorie/${categoryId}`);
+      const data = await res.json();
+
+      const productsWithBlobImages = await Promise.all(
+        data.map(async (product) => {
+          if (product.image) {
+            const blobRes = await fetch(`http://localhost:8001/api/products/${product.id_produit}/image`);
+            const blob = await blobRes.blob();
+            const imageUrl = URL.createObjectURL(blob);
+            return { ...product, image_url: imageUrl };
+          }
+          return product;
+        })
+      );
+
       setProducts(productsWithBlobImages);
     } catch (error) {
       console.error("Erreur produits par catégorie :", error);
@@ -92,8 +105,6 @@ const CataloguePage = () => {
       setLoading(false);
     }
   };
-  
-  
 
   const handleCategoryClick = (categoryId) => {
     setSelectedCategoryId(categoryId);
@@ -103,11 +114,12 @@ const CataloguePage = () => {
       fetchProductsByCategory(categoryId);
     }
   };
-  const sortedProducts = sortProducts(products);
 
- return (
-    // <div className="flex min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-    <div className="flex min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 bg-gradient-to-b from-blue-100 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+  const sortedProducts = sortProducts(products);
+  const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+
+  return (
+    <div className="flex min-h-screen bg-gradient-to-b from-blue-100 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
       {/* Menu latéral */}
       <aside className="w-1/4 bg-gray-100 dark:bg-gray-800 p-4 border-r dark:border-gray-700">
         <h2 className="text-xl font-semibold mb-4">Catégories</h2>
@@ -141,73 +153,114 @@ const CataloguePage = () => {
         </ul>
       </aside>
 
-      {/* Produits */}
-      
-      <main className="flex-1 p-6">
-      <div className="mb-4 flex items-center gap-4">
-  <label htmlFor="sort" className="text-sm font-medium">
-    Trier par :
-  </label>
-  <select
-    id="sort"
-    className="border rounded p-2 dark:bg-gray-700 dark:text-white"
-    value={sortOption}
-    onChange={(e) => setSortOption(e.target.value)}
-  >
-    <option value="default">Par défaut</option>
-    <option value="priceAsc">Prix croissant</option>
-    <option value="priceDesc">Prix décroissant</option>
-    <option value="nameAsc">Nom A-Z</option>
-    <option value="nameDesc">Nom Z-A</option>
-  </select>
-</div>
-
-        <h1 className="text-2xl font-bold mb-4">
-          {selectedCategoryId
-            ? `Catégorie : ${categories.find((c) => c.id_categorie === selectedCategoryId)?.nom_categorie}`
-            : "Tous les produits"}
-        </h1>
-
-        {loading ? (
-          <p>Chargement...</p>
-        ) : products.length === 0 ? (
-          <p>Aucun produit trouvé.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {sortedProducts.map((product) => (
-              <div
-                key={product.id_produit}
-                onClick={() => navigate(`/produit/${product.id_produit}`)}
-                className="cursor-pointer border rounded p-4 shadow hover:shadow-md transition bg-white dark:bg-gray-800 dark:border-gray-700"
+      {/* Colonne droite avec produits + footer */}
+      <div className="flex-1 flex flex-col">
+        <main className="flex-grow p-6">
+          <div className="mb-4 flex items-center gap-4">
+            <label htmlFor="sort" className="text-sm font-medium">
+              Trier par :
+            </label>
+            <select
+              id="sort"
+              className="border rounded p-2 dark:bg-gray-700 dark:text-white"
+              value={sortOption}
+               onChange={(e) => {
+                setSortOption(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="default">Par défaut</option>
+              <option value="priceAsc">Prix croissant</option>
+              <option value="priceDesc">Prix décroissant</option>
+              <option value="nameAsc">Nom A-Z</option>
+              <option value="nameDesc">Nom Z-A</option>
+              <option value="stockAsc">Petit stock</option>
+              <option value="stockDesc">Grand stock</option>
+              <option value="ratingDesc">Meilleure note</option>
+            </select>
+            <label htmlFor="perPage" className="text-sm font-medium">
+                Articles par page :
+              </label>
+              <select
+                id="perPage"
+                className="border rounded p-2 dark:bg-gray-700 dark:text-white"
+                value={productsPerPage}
+                onChange={(e) => {
+                  setProductsPerPage(Number(e.target.value));
+                  setCurrentPage(1); // reset à page 1
+                }}
               >
-                {product.image_url && (
-                  <img
-                    src={product.image_url}
-                    alt={product.titre}
-                    style={{
-                      maxWidth: "300px",
-                      maxHeight: "400px",
-                      width: "100%",
-                      objectFit: "cover",
-                      borderRadius: "8px",
-                      marginBottom: "1rem",
-                      display: "block",
-                      marginLeft: "auto",
-                      marginRight: "auto",
-                    }}
-                  />
-                )}
-                <h2 className="text-lg font-semibold">{product.titre}</h2>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
-                  {categories.find((c) => c.id_categorie === product.id_categorie)?.nom_categorie}
-                </p>
-                <p className="mb-2">{product.description}</p>
-                <p className="font-bold">{product.prix} €</p>
-              </div>
+              <option value={6}>6</option>
+              <option value={12}>12</option>
+              <option value={24}>24</option>
+              <option value={48}>48</option>
+            </select>
+          </div>
+
+          <h1 className="text-2xl font-bold mb-4">
+            {selectedCategoryId
+              ? `Catégorie : ${categories.find((c) => c.id_categorie === selectedCategoryId)?.nom_categorie}`
+              : "Tous les produits"}
+          </h1>
+
+          {loading ? (
+            <p>Chargement...</p>
+          ) : products.length === 0 ? (
+            <p>Aucun produit trouvé.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {currentProducts.map((product) => (
+                <div
+                  key={product.id_produit}
+                  onClick={() => navigate(`/produit/${product.id_produit}`)}
+                  className="cursor-pointer border rounded p-4 shadow hover:shadow-md transition bg-white dark:bg-gray-800 dark:border-gray-700"
+                >
+                  {product.image_url && (
+                    <img
+                      src={product.image_url}
+                      alt={product.titre}
+                      className="mx-auto mb-4 rounded"
+                      style={{
+                        maxWidth: "300px",
+                        maxHeight: "400px",
+                        width: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  )}
+                  <h2 className="text-lg font-semibold">{product.titre}</h2>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
+                    {categories.find((c) => c.id_categorie === product.id_categorie)?.nom_categorie}
+                  </p>
+                  <p className="mb-2">{product.description}</p>
+                  <p className="font-bold">{product.prix} €</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {product.note_moyenne !== null ? `${product.note_moyenne} étoile${product.note_moyenne > 1 ? "s" : ""}` : "Aucune note"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex  justify-center mt-8 space-x-2">
+            {[...Array(totalPages).keys()].map((number) => (
+              <button
+                key={number}
+                onClick={() => setCurrentPage(number + 1)}
+                className={`px-4 py-2 rounded border ${
+                  currentPage === number + 1
+                    ? "bg-blue-600 text-white"
+                    : "bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                } hover:bg-blue-500 hover:text-white transition`}
+              >
+                {number + 1}
+              </button>
             ))}
           </div>
-        )}
-      </main>
+
+        </main>
+
+        <Footer />
+      </div>
     </div>
   );
 };

@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 import Footer from "../PageComponents/Footer";
 import axiosInstance from "../../services/axiosInstance";
+import { toast,Bounce } from "react-toastify";
 
 export default function VerifyCode() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function VerifyCode() {
 
   if (emailFromState) {
     setEmail(emailFromState);
-    setInitialRememberMe(rememberMeFromState); // <-- new
+    setInitialRememberMe(rememberMeFromState);
   } else {
     navigate("/login");
   }
@@ -28,8 +29,13 @@ export default function VerifyCode() {
 const [initialRememberMe, setInitialRememberMe] = useState(false);
 
 const validationSchema = Yup.object({
-  email: Yup.string().email("Format invalide").required("L'email est requis."),
-  code: Yup.string().required("Le code est requis."),
+  email: Yup.string()
+    .email("Format invalide")
+    .max(255, "L'email ne doit pas dépasser 255 caractères.")
+    .required("L'email est requis."),
+  code: Yup.string()
+    .length(6, "Le code doit contenir exactement 6 caractères.")
+    .required("Le code est requis."),
   rememberMe: Yup.boolean()
 });
 
@@ -45,11 +51,33 @@ const initialValues = {
       const response = await axiosInstance.post("/verify", values);
 
       login();
-      alert("Connexion réussie !");
+       toast.success('Connexion réussie !',{
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+      });
       navigate("/dashboard");
 
     } catch (error) {
-      alert(error.response?.data?.message || "Erreur de vérification.");
+      toast.error(error.response?.data?.message || 'Erreur de vérification.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+      }
+      );
     } finally {
       setSubmitting(false);
     }
@@ -69,21 +97,14 @@ const initialValues = {
               <h2 className="text-center font-semibold text-xl text-indigo-700 dark:text-indigo-200">
                 Vérification du code
               </h2>
-
-              <div>
-                <Field
-                  name="email"
-                  type="email"
-                  placeholder="Votre email"
-                  className="w-full border border-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                />
-                <ErrorMessage name="email" component="p" className="text-pink-600 text-sm mt-1" />
+              <div className="w-full border border-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2 bg-gray-100 dark:bg-gray-700/70">
+                {email}
               </div>
-
               <div>
                 <Field
                   name="code"
                   type="text"
+                  maxLength={6}
                   placeholder="Code de vérification"
                   className="w-full border border-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 />
@@ -97,11 +118,17 @@ const initialValues = {
               >
                 {isSubmitting ? "Vérification..." : "Vérifier"}
               </button>
+
+              <div className="text-center mt-2">
+                <a href="/login" className="text-indigo-500 hover:underline text-sm">
+                  Retour à la page de Connexion
+                </a>
+              </div>
+            
             </Form>
           )}
         </Formik>
       </div>
-      <Footer />
     </div>
   );
 }

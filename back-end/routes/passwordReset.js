@@ -1,117 +1,3 @@
-// // ___github___//
-// import express from "express";
-// import { body } from "express-validator";
-// import jwt from "jsonwebtoken";
-// import bcrypt from "bcryptjs";
-// import { GetUserByEmail } from "../queries/User.js";
-// import validateRequest from "../middlewares/validateRequest.js";
-// import { getConnection } from "../queries/connect.js";
-// import { sendEmail } from "../utils/email.js";
-
-// const router = express.Router();
-
-// // Demande de réinitialisation de mot de passe
-// router.post(
-//   "/request-reset",
-//   [
-//     body("email")
-//       .isEmail()
-//       .withMessage("Le champ 'email' doit être une adresse email valide."),
-//   ],
-//   validateRequest,
-//   async (req, res) => {
-//     const { email } = req.body;
-//     const client = getConnection();
-
-//     try {
-//       GetUserByEmail(client, email, async (err, result) => {
-//         if (err) {
-//           return res
-//             .status(500)
-//             .json({ message: "Erreur lors de la vérification de l'email." });
-//         }
-//         if (!result.exists || result.results.length === 0) {
-//           return res.status(404).json({ message: "Utilisateur non trouvé." });
-//         }
-
-//         const user = result.results[0];
-
-//         if (!user.secretkey) {
-//           return res.status(500).json({ message: "Clé secrète manquante pour l'utilisateur." });
-//         }
-
-//         const resetToken = jwt.sign(
-//           { id: user.id_user, email: user.email },
-//           user.secretkey,
-//           { expiresIn: "15m" }
-//         );
-
-//         const resetLink = `http://localhost:5173/resetpassword?token=${resetToken}`;
-
-//         try {
-//           await sendEmail(
-//             user.email,
-//             'Réinitialisation de mot de passe',
-//             `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`
-//           );
-//           res.status(200).json({ message: "Lien de réinitialisation envoyé. Veuillez vérifier votre email." });
-//         } catch (error) {
-//           res.status(500).json({ message: "Erreur lors de l'envoi de l'email." });
-//         }
-//       });
-//     } catch (err) {
-//       res.status(500).json({ message: "Erreur lors de la demande de réinitialisation." });
-//     }
-//   }
-// );
-
-
-// // Réinitialisation du mot de passe
-// router.post(
-//   "/reset-password",
-//   [
-//     body("token").notEmpty().withMessage("Le token est requis."),
-//     body("newPassword").isLength({ min: 8 }).withMessage("Le mot de passe doit comporter au moins 8 caractères."),
-//   ],
-//   validateRequest,
-//   async (req, res) => {
-//     const { token, newPassword } = req.body;
-    
-//     try {
-//       // Étape 1 : Décoder le token sans vérification pour extraire l'id de l'utilisateur
-//       const decodedUnverified = jwt.decode(token);
-//       if (!decodedUnverified?.id) {
-//         return res.status(400).json({ message: "Token invalide." });
-//       }
-
-//       const userId = decodedUnverified.id;
-      
-//       // Mise à jour du mot de passe
-//       const client = getConnection();
-//       const hashedPassword = await bcrypt.hash(newPassword, 10); // Hash du mot de passe
-
-//       const query = "UPDATE users SET mdp = ? WHERE id_user = ?";
-//       client.query(query, [hashedPassword, userId], (err, result) => {
-//         if (err) {
-//           return res.status(500).json({ message: "Erreur lors de la réinitialisation du mot de passe." });
-//         }
-
-//         res.status(200).json({ message: "Mot de passe réinitialisé avec succès." });
-//       });
-//     } catch (error) {
-      
-//       res.status(400).json({ message: "Token invalide ou expiré." });
-//     }
-//   }
-// );
-
-
-
-// export default router;
-
-
-// // ______//
-
 import express from "express";
 import { body } from "express-validator";
 import jwt from "jsonwebtoken";
@@ -122,7 +8,6 @@ import { sendEmail } from "../utils/email.js";
 
 import validateRequest from "../middlewares/validateRequest.js";
 import { logActivity } from '../middlewares/logActivity.js';
-
 
 const router = express.Router();
 
@@ -150,7 +35,7 @@ router.post(
             .json({ message: "Erreur lors de la vérification de l'email." });
         }
         if (!result.exists || result.results.length === 0) {
-          return res.status(404).json({ message: "Utilisateur non trouvé." });
+          return res.status(404).json({ message: "Email invalide" });
         }
 
         const user = result.results[0];

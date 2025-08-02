@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import axiosInstance from "../../../services/axiosInstance";
+import TextareaWithLimit from "../../../components/PageComponents/textarea";
 
 const ArticlesManagement = () => {
     const [categories, setCategories] = useState([]);
@@ -92,19 +93,36 @@ const ArticlesManagement = () => {
   };
 
   // Gestion du champ image (fichier)
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  const maxSize = 5 * 1024 * 1024; // 5 Mo
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    setForm((f) => ({ ...f, image: file }));
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-    } else {
+    if (!file) {
       setPreviewImage(null);
+      setForm((f) => ({ ...f, image: null }));
+      return;
     }
+    if (!allowedTypes.includes(file.type)) {
+      setError("Type de fichier non autorisé. Seules les images JPEG, PNG, GIF, WEBP sont acceptées.");
+      setPreviewImage(null);
+      setForm((f) => ({ ...f, image: null }));
+      return;
+    }
+    if (file.size > maxSize) {
+      setError("Image trop volumineuse (max 5 Mo).");
+      setPreviewImage(null);
+      setForm((f) => ({ ...f, image: null }));
+      return;
+    }
+    setForm((f) => ({ ...f, image: file }));
+    setError(null);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewImage(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   // Soumission ajout / modification
@@ -112,13 +130,6 @@ const ArticlesManagement = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
-    // const token = localStorage.getItem("token");
-    // const headers = {
-    //   ...(token && { Authorization: `Bearer ${token}` }),
-    //   // Pas de Content-Type, axios le définit automatiquement pour FormData
-    // };
-
 
     console.log("Catégories sélectionnées :", selectedCategories);
 
@@ -186,8 +197,6 @@ const ArticlesManagement = () => {
   // Supprimer un article
   const handleDelete = async (id) => {
     if (window.confirm("Voulez-vous vraiment supprimer cet article ?")) {
-      // const token = localStorage.getItem("token");
-      // const headers = token ? { Authorization: `Bearer ${token}` } : {};
       try {
         // await axios.delete(`http://localhost:8001/api/products/delete/${id}`, { headers });
         await axiosInstance.delete(`/products/delete/${id}`);
@@ -217,13 +226,13 @@ const ArticlesManagement = () => {
               required
               className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:text-white"
             />
-            <textarea
+            <TextareaWithLimit
               name="description"
               placeholder="Description"
               value={form.description}
               onChange={handleChange}
-              rows={3}
-              className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:text-white"
+              rows={4}
+              maxLength={300}
             />
             <input
               type="number"
@@ -322,10 +331,11 @@ const ArticlesManagement = () => {
               <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Image</label>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/gif,image/webp"
                 onChange={handleImageChange}
                 className="w-full text-gray-700 dark:text-gray-300"
               />
+              {error && <div className="text-red-600 mt-2">{error}</div>}
               {previewImage && (
                 <img
                   src={previewImage}

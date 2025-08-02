@@ -11,7 +11,6 @@ export default function Accueil() {
         Découvrez nos offres, produits et services. Connectez-vous pour accéder à votre tableau de bord.
       </p>
     </div>
-  <Footer/>
   </>
   );
 }

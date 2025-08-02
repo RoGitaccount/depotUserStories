@@ -40,7 +40,7 @@ export default function SimpleBarChartSales() {
         };
       })
 
-        setData(formatted);
+        setData(formatted.reverse());
       })
       .catch((err) => {
         console.error("Erreur récupération stats:", err);
@@ -50,7 +50,7 @@ export default function SimpleBarChartSales() {
 
   return (
     // <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md max-h-[580px] overflow-y-auto">
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md h-full">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md ">
       <h2 className="text-xl font-bold mb-4">Statistiques de ventes</h2>
 
       <div className="mb-4">
@@ -73,7 +73,7 @@ export default function SimpleBarChartSales() {
     <ResponsiveContainer width="100%" height={420}>
       <BarChart
         data={data}
-        margin={{ top: 60, right: 40, left: 40, bottom: 60 }}
+        margin={{ top: 60, right: 10, left: 40, bottom: 0 }}
         barCategoryGap={10}
       >
         <CartesianGrid strokeDasharray="3 3" />
@@ -90,7 +90,7 @@ export default function SimpleBarChartSales() {
           Montant (€)
         </text>
         <text
-          x="94%"
+          x="98%"
           y={40}
           textAnchor="end"
           fill={"#ae3535ff"}

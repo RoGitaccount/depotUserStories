@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { X, ShoppingCart } from 'lucide-react';
 
-const WishlistList = ({ items, onRemove, onAddToCart }) => {
+
+const WishlistList = ({ items, onRemove, onAddToCart,stock }) => {
   if (!items || items.length === 0) {
     return <p className="text-center text-lg mt-6">Votre wishlist est vide</p>;
   }
@@ -37,12 +39,22 @@ const WishlistList = ({ items, onRemove, onAddToCart }) => {
               Ajouté le : {new Date(item.date_ajout).toLocaleDateString()}
             </p>
             <div className="flex gap-3 mt-3">
+
+              {Number(item.stock) > 0 ? (
               <button
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-                onClick={() => onAddToCart(item.id_produit)}
+              className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+              onClick={() => onAddToCart(item.id_produit)}
               >
+                <ShoppingCart className="w-5 h-5" />
                 Ajouter au panier
               </button>
+              ):(
+                <div className="flex items-center gap-2 px-3 py-2 bg-red-100 text-red-800 border border-red-300 rounded-md shadow-sm">
+                  <X className="w-5 h-5" />
+                  <span className="font-semibold text-sm">Rupture de stock</span>
+                </div>
+              )}
+
               <button
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
                 onClick={() => onRemove(item.id_produit)}

@@ -17,7 +17,7 @@ const router = express.Router();
 // Récupère le nombre de commandes, le total des ventes et le panier moyen par jour
 router.get(
   "/sales",
-  // authenticateToken,
+  authenticateToken,
   logActivity("Récupération des statistiques de ventes"),
   updateLastActivity,
   (req, res) => {
@@ -47,7 +47,7 @@ router.get(
 
 router.get(
   "/best-products/:id_categorie",
-  // authenticateToken,
+  authenticateToken,
   logActivity("Récupération des meilleurs produits par catégorie"),
   [
     param("id_categorie")
@@ -81,7 +81,7 @@ router.get(
 // Récupère les 10 catégories les plus populaires
 router.get(
   "/popular-categories",
-  // authenticateToken,
+  authenticateToken,
   logActivity("Récupération des catégories les plus populaires"),
   updateLastActivity,
   (req, res) => {

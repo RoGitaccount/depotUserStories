@@ -5,13 +5,19 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Footer from "../../components/PageComponents/Footer";
 import axiosInstance from '../../services/axiosInstance';
+import { toast, Bounce } from "react-toastify";
 
 export default function Login() {
   const navigate = useNavigate();
 
   const validationSchema = Yup.object({
-    email: Yup.string().email('Format d\'email invalide.').required('L\'email est requis.'),
-    password: Yup.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères.').required('Le mot de passe est requis.'),
+    email: Yup.string()
+      .email('Format d\'email invalide.')
+      .max(255, "L'email ne doit pas dépasser 255 caractères.")
+      .required('L\'email est requis.'),
+    password: Yup.string()
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères.')
+    .max(255).required('Le mot de passe est requis.'),
   });
 
   const initialValues = { email: '', password: '', rememberMe: false };
@@ -25,13 +31,36 @@ export default function Login() {
     };
     await axiosInstance.post('/login', payload);
 
-      alert('Code envoyé par email. Veuillez vérifier votre boîte mail.');
       
+      toast.success('Code envoyé par email. Veuillez vérifier votre boîte mail.',{
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+      });
+
       // Transmet l'email vers la page de vérification
       navigate('/verify-code', { state: { email: values.email,rememberMe: values.rememberMe,} });
 
     } catch (error) {
-      alert(error.response?.data?.message || 'Erreur lors de la connexion.');
+      toast.error(error.response?.data?.message || 'Erreur lors de la connexion.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+      }
+      );
     } finally {
       setSubmitting(false);
     }
@@ -46,11 +75,11 @@ export default function Login() {
               <Form className="space-y-6">
                 <h2 className="text-center text-2xl font-bold text-indigo-700 dark:text-indigo-200 mb-6">Connexion à votre compte</h2>
                 <div>
-                  <Field name="email" type="email" placeholder="Email" className="border border-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded w-full p-3 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                  <Field name="email" type="email" maxLength={255} placeholder="Email" className="border border-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded w-full p-3 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
                   <ErrorMessage name="email" component="p" className="text-pink-600 text-sm mt-1" />
                 </div>
                 <div>
-                  <Field name="password" type="password" placeholder="Mot de passe" className="border border-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded w-full p-3 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                  <Field name="password" type="password" maxLength={255} placeholder="Mot de passe" className="border border-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded w-full p-3 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
                   <ErrorMessage name="password" component="p" className="text-pink-600 text-sm mt-1" />
                 </div>
                 <button type="submit" disabled={isSubmitting} className="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-3 rounded-lg font-semibold shadow hover:from-indigo-600 hover:to-pink-600 transition">
@@ -76,7 +105,6 @@ export default function Login() {
           </Formik>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

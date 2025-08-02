@@ -9,6 +9,7 @@ const WishlistPage = () => {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const hasStock = wishlist.some((produit) => produit.stock > 0);
 
   useEffect(() => {
     loadWishlist();
@@ -63,8 +64,20 @@ const WishlistPage = () => {
     try {
       await axiosInstance.delete(`/wishlist/delete/${id_produit}`);
       loadWishlist();
-    } catch {
-      alert("Erreur lors de la suppression.");
+    } catch {      
+      toast.error('Erreur lors de la suppression.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
     }
   };
 
@@ -73,15 +86,46 @@ const WishlistPage = () => {
       await axiosInstance.delete('/wishlist/clear');
       loadWishlist();
     } catch {
-      alert("Erreur lors du vidage de la wishlist.");
+      toast.error('Erreur lors du vidage de la wishlist.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
     }
   };
 
-  const handleAddToCart = async (id_produit) => {
+const handleAddToCart = async (id_produit) => {
   try {
+    const produit = wishlist.find(p => p.id_produit === id_produit && Number(p.stock) > 0);
+
+    if (!produit) {
+      toast.info("Ce produit est en rupture de stock.", {
+        className: "toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+      });
+      return;
+    }
+
     await axiosInstance.post(`/wishlist/add_to_cart/${id_produit}`, {});
-    toast.success("Article ajouté au panier !",{
-      position: "bottom-right",
+
+    toast.success("Article ajouté au panier !", {
+      className: "toast-top-position",
+      position: "top-right",
       autoClose: 3000,
       hideProgressBar: true,
       closeOnClick: true,
@@ -90,18 +134,69 @@ const WishlistPage = () => {
       theme: "light",
       transition: Bounce,
     });
+
     loadWishlist();
   } catch {
-    toast.error("Erreur lors de l'ajout au panier.");
+    toast.error("Erreur lors de l'ajout au panier.", {
+      className: "toast-top-position",
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "light",
+      transition: Bounce,
+    });
   }
 };
 
 const handleAddAllToCart = async () => {
   try {
+    const produitsEnStock = wishlist.filter(p => Number(p.stock) > 0);
+
+    if (produitsEnStock.length === 0) {
+      toast.info("Aucun produit en stock à ajouter.", {
+        className: "toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+      });
+      return;
+    }
+
     await axiosInstance.post('/wishlist/add_all_to_cart', {});
+
+    toast.success("Articles ajoutés au panier !", {
+      className: "toast-top-position",
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "light",
+      transition: Bounce,
+    });
+
     loadWishlist();
   } catch {
-    alert("Erreur lors de l'ajout de tous les produits au panier.");
+    toast.error("Erreur lors de l'ajout de tous les produits au panier.", {
+      className: "toast-top-position",
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "light",
+      transition: Bounce,
+    });
   }
 };
 
@@ -146,12 +241,14 @@ return (
             <div className="p-6 rounded shadow bg-white dark:bg-gray-800/80 backdrop-blur">
               <h2 className="text-xl font-semibold mb-4">Actions</h2>
               <div className="flex flex-col gap-4">
-                <button
-                  onClick={handleAddAllToCart}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-                >
-                  Ajouter tous les produits au panier
-                </button>
+                {hasStock && (
+                  <button
+                    onClick={handleAddAllToCart}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                  >
+                    Ajouter tous les produits au panier
+                  </button>
+                )}
                 <button
                   onClick={handleClear}
                   className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"

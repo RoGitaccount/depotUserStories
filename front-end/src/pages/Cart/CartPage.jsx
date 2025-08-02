@@ -5,6 +5,7 @@ import CartSummary from '../../components/Cart/CartSummary';
 import axios from 'axios';
 import RedirectButton from '../../components/PageComponents/RedirectButton';
 import axiosInstance from "../../services/axiosInstance";
+import { toast, Bounce } from "react-toastify";
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -83,7 +84,20 @@ const CartPage = () => {
       await axiosInstance.delete(`/cart/delete/${id_produit}`);
       loadCart();
     } catch (err) {
-      alert("Erreur lors de la suppression du produit.", err);
+      // alert("Erreur lors de la suppression du produit.", err);
+      toast.error('Erreur lors de la suppression du produit.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
     }
   };
 
@@ -93,7 +107,20 @@ const CartPage = () => {
       await axiosInstance.delete('/cart/clear');
       loadCart();
     } catch (err) {
-      alert("Erreur lors du vidage du panier.", err);
+      // alert("Erreur lors du vidage du panier.", err);
+      toast.error('Erreur lors du vidage du panier.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
     }
   };
 

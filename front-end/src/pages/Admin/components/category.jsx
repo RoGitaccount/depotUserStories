@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import axiosInstance from "../../../services/axiosInstance";
+import TextareaWithLimit from "../../../components/PageComponents/textarea";
 
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
@@ -114,13 +115,13 @@ const highlightText = (text, term) => {
               required
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
             />
-            <textarea
+            <TextareaWithLimit
               name="description"
               placeholder="Description"
               value={form.description}
               onChange={handleChange}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+              maxLength={300}
             />
             <div className="flex items-center space-x-4">
               <button

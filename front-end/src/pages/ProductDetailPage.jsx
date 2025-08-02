@@ -3,6 +3,9 @@ import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../contexts/AuthContext";
 import axiosInstance from "../services/axiosInstance";
+import TextareaWithLimit from "../components/PageComponents/textarea";
+import { toast, Bounce } from "react-toastify";
+import { Link } from "react-router-dom";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -78,171 +81,163 @@ const ProductDetailPage = () => {
     }
   };
 
-  // const fetchAvis = async () => {
-  //   try {
-  //     const res = await axios.get(`http://localhost:8001/api/reviews/${id}`);
-  //     setAvis(res.data);
-  //   } catch (error) {
-  //     console.error("Erreur récupération avis :", error);
-  //   }
-  // };
-
   const fetchAvis = async () => {
-  try {
-    const res = await axiosInstance.get(`/reviews/${id}`);
-    setAvis(res.data);
-  } catch (error) {
-    console.error("Erreur récupération avis :", error);
-  }
-};
-
-
-  // const handleAddToCart = async () => {
-  //   try {
-  //     // const token = localStorage.getItem("token");
-  //     await axios.post(
-  //       `http://localhost:8001/api/wishlist/add_to_cart/${produit.id_produit}`,
-  //       {},
-  //       {
-  //         // headers: {
-  //         //   Authorization: `Bearer ${token}`,
-  //         // },
-  //          withCredentials: true,
-  //       }
-  //     );
-  //     alert("Produit ajouté au panier !");
-  //   } catch (error) {
-  //     console.error("Erreur ajout panier :", error);
-  //     alert("Erreur lors de l'ajout au panier.");
-  //   }
-  // };
+    try {
+      const res = await axiosInstance.get(`/reviews/${id}`);
+      setAvis(res.data);
+    } catch (error) {
+      console.error("Erreur récupération avis :", error);
+    }
+  };
 
   const handleAddToCart = async () => {
-  try {
-    await axiosInstance.post(`/wishlist/add_to_cart/${produit.id_produit}`, {});
-    alert("Produit ajouté au panier !");
-  } catch (error) {
-    console.error("Erreur ajout panier :", error);
-    alert("Erreur lors de l'ajout au panier.");
-  }
-};
-
-
-  // const handleAddToWishlist = async () => {
-  //   try {
-  //     // const token = localStorage.getItem("token");
-  //     await axios.post(
-  //       `http://localhost:8001/api/wishlist/add/${produit.id_produit}`,
-  //       {},
-  //       {
-  //         // headers: {
-  //         //   Authorization: `Bearer ${token}`,
-  //         // },
-  //          withCredentials: true,
-  //       }
-  //     );
-  //     alert("Produit ajouté à la wishlist !");
-  //   } catch (error) {
-  //     console.error("Erreur ajout wishlist :", error);
-  //     alert("Erreur lors de l'ajout à la wishlist.");
-  //   }
-  // };
+    try {
+      await axiosInstance.post(`/wishlist/add_to_cart/${produit.id_produit}`, {});
+      // alert("Produit ajouté au panier !");
+      toast.success('Produit ajouté au panier !',{
+          className:"toast-top-position",
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+          transition: Bounce,
+        });
+    } catch (error) {
+      console.error("Erreur ajout panier :", error);
+      // alert("Erreur lors de l'ajout au panier.");
+      toast.error('Erreur lors de l\'ajout au panier.',
+        {
+          className:"toast-top-position",
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+          transition: Bounce,
+        }
+      );
+    }
+  };
 
   const handleAddToWishlist = async () => {
-  try {
-    await axiosInstance.post(`/wishlist/add/${produit.id_produit}`, {});
-    alert("Produit ajouté à la wishlist !");
-  } catch (error) {
-    console.error("Erreur ajout wishlist :", error);
-    alert("Erreur lors de l'ajout à la wishlist.");
-  }
-};
-
-
-  // Ajout d'avis
-  // const handleSubmitReview = async (e) => {
-  //   e.preventDefault();
-  //   if (!user) {
-  //     alert("Vous devez être connecté pour laisser un avis.");
-  //     return;
-  //   }
-  //   try {
-  //     // const token = localStorage.getItem("token");
-  //     await axios.post(
-  //       "http://localhost:8001/api/reviews/add-review",
-  //       {
-  //         id_produit: produit.id_produit,
-  //         note,
-  //         commentaire,
-  //       },
-  //       {
-  //         // headers: {
-  //         //   Authorization: `Bearer ${token}`,
-  //         // },
-  //          withCredentials: true,
-  //       }
-  //     );
-  //     setCommentaire("");
-  //     setNote(5);
-  //     fetchAvis();
-  //     alert("Avis envoyé !");
-  //   } catch (error) {
-  //     alert(error.response?.data?.message || "Erreur lors de l'envoi de l'avis.");
-  //   }
-  // };
+    try {
+      await axiosInstance.post(`/wishlist/add/${produit.id_produit}`, {});
+      // alert("Produit ajouté à la wishlist !");
+      toast.success('Produit ajouté à la wishlist !',{
+          className:"toast-top-position",
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+          transition: Bounce,
+      });
+    } catch (error) {
+      console.error("Erreur ajout wishlist :", error);
+      // alert("Erreur lors de l'ajout à la wishlist.");
+      toast.error('Erreur lors de l\'ajout à la wishlist.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
+    }
+  };
 
   const handleSubmitReview = async (e) => {
-  e.preventDefault();
-  if (!user) {
-    alert("Vous devez être connecté pour laisser un avis.");
-    return;
-  }
-  try {
-    await axiosInstance.post("/reviews/add-review", {
-      id_produit: produit.id_produit,
-      note,
-      commentaire,
-    });
-    setCommentaire("");
-    setNote(5);
-    fetchAvis();
-    alert("Avis envoyé !");
-  } catch (error) {
-    alert(error.response?.data?.message || "Erreur lors de l'envoi de l'avis.");
-  }
-};
-
-
-  // Suppression d'avis
-  // const handleDeleteReview = async (id_avis) => {
-  //   if (!window.confirm("Supprimer cet avis ?")) return;
-  //   try {
-  //     // const token = localStorage.getItem("token");
-  //     await axios.delete(
-  //       `http://localhost:8001/api/reviews/delete-review/${id_avis}`,
-  //       {
-  //         // headers: {
-  //         //   Authorization: `Bearer ${token}`,
-  //         // },
-  //          withCredentials: true,
-  //       }
-  //     );
-  //     fetchAvis();
-  //   } catch (error) {
-  //     alert(error.response?.data?.message || "Erreur lors de la suppression.");
-  //   }
-  // };
+    e.preventDefault();
+    if (!user) {
+      // alert("Vous devez être connecté pour laisser un avis.");
+      toast.warning('Vous devez être connecté pour laisser un avis.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
+      return;
+    }
+    try {
+      await axiosInstance.post("/reviews/add-review", {
+        id_produit: produit.id_produit,
+        note,
+        commentaire,
+      });
+      setCommentaire("");
+      setNote(5);
+      fetchAvis();
+      // alert("Avis envoyé !");
+       toast.success('Avis envoyé !',{
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+      });
+    } catch (error) {
+      // alert(error.response?.data?.message || "Erreur lors de l'envoi de l'avis.");
+      toast.error(error.response?.data?.message || 'Erreur lors de l\'envoi de l\'avis.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+      }
+      );
+    }
+  };
 
   const handleDeleteReview = async (id_avis) => {
-  if (!window.confirm("Supprimer cet avis ?")) return;
-  try {
-    await axiosInstance.delete(`/reviews/delete-review/${id_avis}`);
-    fetchAvis();
-  } catch (error) {
-    alert(error.response?.data?.message || "Erreur lors de la suppression.");
-  }
-};
-
+    if (!window.confirm("Supprimer cet avis ?")) return;
+    try {
+      await axiosInstance.delete(`/reviews/delete-review/${id_avis}`);
+      fetchAvis();
+    } catch (error) {
+      // alert(error.response?.data?.message || "Erreur lors de la suppression.");
+      toast.error(error.response?.data?.message || 'Erreur lors de la suppression.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+      }
+      );
+    }
+  };
 
   // Préparation modification
   const handleEditClick = (avis) => {
@@ -258,45 +253,32 @@ const ProductDetailPage = () => {
     setEditCommentaire("");
   };
 
-  // Modification d'avis
-  // const handleEditReview = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     // const token = localStorage.getItem("token");
-  //     await axios.put(
-  //       `http://localhost:8001/api/reviews/update-review/${editId}`,
-  //       {
-  //         note: editNote,
-  //         commentaire: editCommentaire,
-  //       },
-  //       {
-  //         // headers: {
-  //         //   Authorization: `Bearer ${token}`,
-  //         // },
-  //          withCredentials: true,
-  //       }
-  //     );
-  //     setEditId(null);
-  //     fetchAvis();
-  //   } catch (error) {
-  //     alert(error.response?.data?.message || "Erreur lors de la modification.");
-  //   }
-  // };
-
   const handleEditReview = async (e) => {
-  e.preventDefault();
-  try {
-    await axiosInstance.put(`/reviews/update-review/${editId}`, {
-      note: editNote,
-      commentaire: editCommentaire,
-    });
-    setEditId(null);
-    fetchAvis();
-  } catch (error) {
-    alert(error.response?.data?.message || "Erreur lors de la modification.");
-  }
-};
-
+    e.preventDefault();
+    try {
+      await axiosInstance.put(`/reviews/update-review/${editId}`, {
+        note: editNote,
+        commentaire: editCommentaire,
+      });
+      setEditId(null);
+      fetchAvis();
+    } catch (error) {
+      // alert(error.response?.data?.message || "Erreur lors de la modification.");
+      toast.error(error.response?.data?.message || 'Erreur lors de la modification.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
+    }
+  };
 
   if (loading) return <p>Chargement...</p>;
   if (!produit) return <p>Produit non trouvé.</p>;
@@ -338,12 +320,15 @@ const ProductDetailPage = () => {
               )}
             </p>
 
-            <button
-              onClick={handleAddToCart}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Ajouter au panier
-            </button>
+            {produit.stock > 0 && (
+              <button
+                onClick={handleAddToCart}
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Ajouter au panier
+              </button>
+            )}
+
             <button
               onClick={handleAddToWishlist}
               className="w-full bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700"
@@ -351,23 +336,6 @@ const ProductDetailPage = () => {
               Ajouter à la wishlist
             </button>
           </div>
-        </div>
-
-        {/* Colonne droite : prix + boutons */}
-        <div className="w-full md:w-1/3 flex flex-col gap-4 items-start">
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400">{produit.prix} €</p>
-          <button
-            onClick={handleAddToCart}
-            className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Ajouter au panier
-          </button>
-          <button
-            onClick={handleAddToWishlist}
-            className="w-full bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700"
-          >
-            Ajouter à la wishlist
-          </button>
         </div>
       </div>
 
@@ -392,14 +360,15 @@ const ProductDetailPage = () => {
               </div>
               <div>
                 <label htmlFor="commentaire" className="block font-medium mb-1">Commentaire :</label>
-                <textarea
+                <TextareaWithLimit
                   id="commentaire"
                   value={commentaire}
                   onChange={(e) => setCommentaire(e.target.value)}
-                  className="border p-2 rounded w-full dark:bg-gray-700 dark:text-white"
                   rows={3}
                   required
-                ></textarea>
+                  maxLength={200}
+                />
+
               </div>
               <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                 Envoyer l’avis
@@ -452,13 +421,13 @@ const ProductDetailPage = () => {
                         <option key={n} value={n}>{n} étoile{n > 1 ? "s" : ""}</option>
                       ))}
                     </select>
-                    <textarea
+                    <TextareaWithLimit
                       value={editCommentaire}
                       onChange={(e) => setEditCommentaire(e.target.value)}
-                      className="border p-1 rounded w-full dark:bg-gray-600 dark:text-white"
-                      rows={2}
+                      rows={3}
                       required
-                    ></textarea>
+                      maxLength={200}
+                    />
                     <div className="flex gap-2">
                       <button type="submit" className="bg-green-600 text-white px-2 py-1 rounded">
                         Enregistrer
@@ -497,19 +466,14 @@ const ProductDetailPage = () => {
                   <h3 className="text-lg font-semibold mb-2">{prod.titre}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">{prod.description}</p>
                   <p className="font-bold text-green-600 dark:text-green-400 mb-2">{prod.prix} €</p>
-                  <a
-                    href={`/produit/${prod.id_produit}`}
-                    className="text-blue-600 hover:underline"
-                  >
+                  <Link to={`/produit/${prod.id_produit}`} className="text-blue-600 hover:underline">
                     Voir le produit
-                  </a>
+                  </Link>
                 </div>
               ))}
             </div>
         </div>
-        
         )}
-
     </div>
 );
 };

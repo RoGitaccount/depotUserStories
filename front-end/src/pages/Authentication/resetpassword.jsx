@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 import Footer from '../../components/PageComponents/Footer';
 import axiosInstance from '../../services/axiosInstance';
 
 const ResetPassword = () => {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -15,21 +13,38 @@ const ResetPassword = () => {
   const queryParams = new URLSearchParams(location.search);
   const token = queryParams.get('token');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const validationSchema = Yup.object({
+    newPassword: Yup.string()
+      .min(8, 'Le mot de passe doit contenir au moins 8 caractères.')
+      .max(255, 'Le mot de passe ne doit pas dépasser 255 caractères.')
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).+$/,
+        'Le mot de passe doit contenir au minimum une majuscule, une minuscule, un chiffre et un caractère spécial.'
+      )
+      .required('Le nouveau mot de passe est requis.'),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref('newPassword'), null], 'Les mots de passe ne correspondent pas.')
+      .required('La confirmation est requise.')
+  });
 
-    if (newPassword !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas.');
-      return;
-    }
 
+  const initialValues = {
+    newPassword: '',
+    confirmPassword: ''
+  };
+
+  const handleSubmit = async (values, { setSubmitting, setErrors, resetForm }) => {
     try {
-      await axiosInstance.post('/reset-password', { token, newPassword });
+      await axiosInstance.post('/reset-password', {
+        token,
+        newPassword: values.newPassword
+      });
       setSuccess(true);
-      setError('');
       setTimeout(() => navigate('/login'), 3000);
-    } catch {
-      setError('Erreur lors de la réinitialisation du mot de passe.');
+    } catch (error) {
+      setErrors({ confirmPassword: 'Erreur lors de la réinitialisation du mot de passe.' });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -41,46 +56,62 @@ const ResetPassword = () => {
             Réinitialiser votre mot de passe
           </h2>
 
-          {error && <p className="text-pink-600 text-sm mb-4 text-center">{error}</p>}
           {success && (
             <p className="text-green-600 text-sm mb-4 text-center">
               Mot de passe réinitialisé avec succès ! Redirection en cours...
             </p>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <input
-                type="password"
-                placeholder="Nouveau mot de passe"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                className="border border-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded w-full p-3 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-              />
-            </div>
-            <div>
-              <input
-                type="password"
-                placeholder="Confirmer le mot de passe"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="border border-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded w-full p-3 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-3 rounded-lg font-semibold shadow hover:from-indigo-600 hover:to-pink-600 transition"
-            >
-              Réinitialiser le mot de passe
-            </button>
-          </form>
+          <Formik
+            initialValues={initialValues}
+            validationSchema={validationSchema}
+            onSubmit={handleSubmit}
+          >
+            {({ isSubmitting }) => (
+              <Form className="space-y-6">
+                <div>
+                  <Field
+                    type="password"
+                    name="newPassword"
+                    placeholder="Nouveau mot de passe"
+                    maxLength={255}
+                    className="border border-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded w-full p-3 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  />
+                  <ErrorMessage name="newPassword" component="p" className="text-pink-600 text-sm mt-1" />
+                </div>
+                <div>
+                  <Field
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="Confirmer le mot de passe"
+                    maxLength={255}
+                    className="border border-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded w-full p-3 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  />
+                  <ErrorMessage name="confirmPassword" component="p" className="text-pink-600 text-sm mt-1" />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-3 rounded-lg font-semibold shadow hover:from-indigo-600 hover:to-pink-600 transition"
+                >
+                  {isSubmitting ? 'Réinitialisation en cours...' : 'Réinitialiser le mot de passe'}
+                </button>
+
+               <div className="text-center mt-2">
+                <a href="/login" className="text-indigo-500 hover:underline text-sm">
+                  Retour à la page de Connexion
+                </a>
+              </div>
+
+              </Form>
+            )}
+          </Formik>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };
+
+
 
 export default ResetPassword;

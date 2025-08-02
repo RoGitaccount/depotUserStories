@@ -33,7 +33,8 @@ export function Get_user_wishlist(client, id_user, callback) {
       p.titre,
       p.image,
       p.prix,
-      w.date_ajout
+      w.date_ajout,
+      p.stock
     FROM wishlist w
     JOIN produits p ON w.id_produit = p.id_produit
     WHERE w.id_user = ?

@@ -4,6 +4,7 @@ import axiosInstance from "../../../services/axiosInstance";
 import PopularCategoriesChart from "./stats/popular-categories";
 import BestProductsByCategoryChart from "./stats/BestProductsByCategoryChart";
 import SimpleBarChartSales from "./stats/sales_and_avg_basket";
+import { toast, Bounce } from "react-toastify";
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -50,7 +51,20 @@ const OrderList = () => {
     // const token = localStorage.getItem("token");
   
     if (!editingId) {
-      alert("Sélectionnez une commande à modifier.");
+      // alert("Sélectionnez une commande à modifier.");
+      toast.info('Sélectionnez une commande à modifier.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
       return;
     }
     axiosInstance.put(
