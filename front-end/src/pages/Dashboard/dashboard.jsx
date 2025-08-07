@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import RedirectButton from '../../components/PageComponents/RedirectButton';
 import axiosInstance from "../../services/axiosInstance";
+import fileDownload from 'js-file-download';
 
 const STATIC_FILTERS = [
   { label: "Toutes", value: "all" },
@@ -43,45 +44,6 @@ export default function Dashboard() {
         setLoadingInfo(false);
       });
   }, []);
-
-  // // Historique commandes
-  // useEffect(() => {
-  //   setLoadingOrders(true);
-  //   let url = `http://localhost:8001/api/userdashboard/orders-history?filter_date=${filter}`;
-  //   if (filter === "year" && selectedYear) {
-  //     url += `&annee_val=${selectedYear}`;
-  //   }
-
-  //   axios
-  //     .get(url, {
-  //       withCredentials: true,
-  //     })
-  //     .then((res) => {
-  //       const merged = {};
-  //       res.data.forEach((order) => {
-  //         if (!merged[order.id_commande]) {
-  //           merged[order.id_commande] = {
-  //             ...order,
-  //             produits: [],
-  //           };
-  //         }
-  //         merged[order.id_commande].produits.push({
-  //           titre: order.titre,
-  //           description: order.description,
-  //           id_produit: order.id_produit,
-  //         });
-  //       });
-  //       const sorted = Object.values(merged).sort(
-  //         (a, b) => new Date(b.date_commande) - new Date(a.date_commande)
-  //       );
-  //       setOrders(sorted);
-  //       setLoadingOrders(false);
-  //     })
-  //     .catch(() => {
-  //       setError("Erreur lors du chargement de l'historique des commandes.");
-  //       setLoadingOrders(false);
-  //     });
-  // }, [filter, selectedYear]);
 
   // Historique des commandes (filtrées)
 useEffect(() => {
@@ -142,8 +104,20 @@ useEffect(() => {
     }
   };
 
+  const handleDownloadFacture = async (facture_token, id_commande) => {
+  try {
+    const res = await axiosInstance.get(`/user/facture/${facture_token}`, {
+      responseType: 'blob'
+    });
+    fileDownload(res.data, `facture_${id_commande}.pdf`);
+  } catch (err) {
+    alert("Erreur lors du téléchargement de la facture.");
+  }
+};
+
   return (
-      <div className="flex flex-col md:flex-row gap-8 p-6 min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="flex flex-col md:flex-row gap-8 p-6 min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4 sm:px-6 lg:px-8">
+      
       {/* Historique des commandes */}
       <section className="md:w-2/3 w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
         <div className="flex items-center justify-between mb-6">
@@ -181,22 +155,36 @@ useEffect(() => {
                 key={order.id_commande}
                 className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900 transition"
               >
-                <div className="flex flex-wrap gap-4 text-sm text-gray-800 dark:text-gray-200 mb-2">
-                  <div>
-                    <strong>Commande n° :</strong> {order.id_commande}
+                <div className="flex flex-wrap gap-4 text-sm text-gray-800 dark:text-gray-200 mb-2 justify-between items-center">
+                  <div className="flex gap-4 flex-wrap">
+                    <div>
+                      <strong>Commande n° :</strong> {order.id_commande}
+                    </div>
+                    <div>
+                      <strong>Commande effectuée le :</strong>{" "}
+                      {order.date_commande ? new Date(order.date_commande).toLocaleString() : "N/A"}
+                    </div>
+                    <div>
+                      <strong>Statut :</strong>{" "}
+                      <span className="capitalize">{order.statut}</span>
+                    </div>
+                    <div>
+                      <strong>Total :</strong> {order.montant_total} €
+                    </div>
                   </div>
-                  <div>
-                    <strong>Commande effectuée le :</strong>{" "}
-                    {order.date_commande ? new Date(order.date_commande).toLocaleString() : "N/A"}
-                  </div>
-                  <div>
-                    <strong>Statut :</strong>{" "}
-                    <span className="capitalize">{order.statut}</span>
-                  </div>
-                  <div>
-                    <strong>Total :</strong> {order.montant_total} €
-                  </div>
+
+                  {order.facture_token && (
+                    <div>
+                      <button
+                        onClick={() => handleDownloadFacture(order.facture_token, order.id_commande)}
+                        className="text-blue-600 hover:underline text-sm font-medium transition-colors"
+                      >
+                        Télécharger la facture
+                      </button>
+                    </div>
+                  )}
                 </div>
+
 
                 <div className="mb-2">
                   <strong className="text-gray-800 dark:text-gray-200">Produits :</strong>
@@ -212,7 +200,9 @@ useEffect(() => {
 
                 <div>
                   <strong className="text-gray-800 dark:text-gray-200">Paiement effectué le :</strong>{" "}
-                  {order.date_transaction ? new Date(order.date_transaction).toLocaleString() : "N/A"}
+                  <span className="text-gray-600 dark:text-gray-400">
+                      {order.date_transaction ? new Date(order.date_transaction).toLocaleString() : "N/A"}
+                  </span>
                 </div>
               </li>
             ))}
@@ -221,7 +211,7 @@ useEffect(() => {
       </section>
 
       {/* Infos personnelles */}
-      <section className="md:w-1/3 w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <section className="md:w-1/3 w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 self-start">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 border-b pb-2">
           Mes informations
         </h2>

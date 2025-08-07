@@ -1,49 +1,91 @@
 import React from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
-// import './BillingForm.css';
+
+import countries from 'i18n-iso-countries';
+import fr from 'i18n-iso-countries/langs/fr.json';
+import CountryListbox from './CountryListbox';
+
+
+countries.registerLocale(fr);
+// récupère la liste officielle des noms de pays en français
+const countryList = countries.getNames('fr', { select: 'official' });
+
+const countryOptions = Object.entries(countryList).map(([code, name]) => ({
+  code,
+  name,
+}));
 
 const billingSchema = Yup.object().shape({
   nom: Yup.string()
-    .transform(value => value ? value.trim() : '')
+    .trim()
+    .min(2, '2 caractères minimum')
+    .max(100, '100 caractères max')
     .required('Le nom est requis'),
+
   prenom: Yup.string()
-    .transform(value => value ? value.trim() : '')
+    .trim()
+    .min(2, '2 caractères minimum')
+    .max(100, '100 caractères max')
     .required('Le prénom est requis'),
+
   email: Yup.string()
-    .transform(value => value ? value.trim() : '')
+    .trim()
     .email('Email invalide')
-    .required('L\'email est requis'),
+    .max(255, '255 caractères max')
+    .required('Email requis'),
+
   telephone: Yup.string()
-    .transform(value => value ? value.replace(/\s/g, '') : undefined)
-    .matches(/^[\d\s()+-]{7,20}$/, 'Numéro de téléphone invalide')
-    .required('Le téléphone est requis'),
+    .trim()
+    .matches(/^\+?\d{6,15}$/, 'Téléphone invalide')
+    .min(6, '6 chiffres minimum')
+    .max(15, '15 chiffres max')
+    .required('Téléphone requis'),
+
   adresse: Yup.string()
-    .transform(value => value ? value.trim() : '')
-    .required('L\'adresse est requise'),
+    .trim()
+    .min(5, '5 caractères minimum')
+    .max(255, '255 caractères max')
+    .required('Adresse requise'),
+
   complementAdresse: Yup.string()
-    .transform(value => value ? value.trim() : ''),
+    .trim()
+    .max(100, '100 caractères max'),
+
   ville: Yup.string()
-    .transform(value => value ? value.trim() : '')
-    .required('La ville est requise'),
+    .trim()
+    .min(2, '2 caractères minimum')
+    .max(100, '100 caractères max')
+    .required('Ville requise'),
+
   region: Yup.string()
-    .transform(value => value ? value.trim() : '')
-    .required('La région est requise'),
+    .trim()
+    .min(2, '2 caractères minimum')
+    .max(100, '100 caractères max')
+    .required('Région requise'),
+
   codePostal: Yup.string()
-    .transform(value => value ? value.trim() : '')
-    .matches(/^\d{4,10}$/, 'Le code postal doit contenir entre 4 et 10 chiffres')
-    .required('Le code postal est requis'),
+    .trim()
+    .min(2, '2 caractères minimum')
+    .max(10, '10 caractères max')
+    .required('Code postal requis'),
+
   pays: Yup.string()
-    .transform(value => value ? value.trim() : '')
-    .required('Le pays est requis'),
+    .oneOf(Object.values(countryList), 'Pays invalide')
+    .required('Pays requis'),
+
   nomEntreprise: Yup.string()
-    .transform(value => value ? value.trim() : '')
-    .required('Le nom de l\'entreprise est requis'),
+    .trim()
+    .min(2, '2 caractères minimum')
+    .max(255, '255 caractères max')
+    .required('Nom entreprise requis'),
+
   numeroTva: Yup.string()
-    .transform(value => value ? value.trim() : '')
-    .matches(/^[A-Z0-9]+$/, 'Le numéro de TVA doit contenir uniquement des lettres et des chiffres')
-    .required('Le numéro de TVA est requis'),
+    .trim()
+    .matches(/^[A-Z]{2}[A-Z0-9]{8,12}$/, 'Format TVA invalide')
+    .required('Numéro TVA requis'),
 });
+
 
 const defaultValues = {
   nom: '',
@@ -59,6 +101,12 @@ const defaultValues = {
   nomEntreprise: '',
   numeroTva: '',
 };
+
+const inputClass =
+  'w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white';
+
+const disabledInputClass =
+  'w-full px-4 py-2 border border-gray-200 bg-gray-100 rounded-md cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400';
 
 const BillingForm = ({ onSubmit, initialValues, disabled }) => {
   return (
@@ -76,154 +124,93 @@ const BillingForm = ({ onSubmit, initialValues, disabled }) => {
         }}
       >
         {({ errors, touched, isSubmitting }) => (
-          <Form className="max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 text-black dark:text-white">
-            <h2 className="text-2xl font-bold mb-6">Informations de facturation</h2>
+          <Form className="max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 text-black dark:text-white space-y-6">
+
+            <h2 className="text-2xl font-bold">Informations de facturation</h2>
 
             {/* NOM / PRENOM */}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="nom" className="block font-semibold mb-1">Nom</label>
-                <Field
-                  type="text"
-                  name="nom"
-                  id="nom"
-                  disabled
-                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
-                />
-                {errors.nom && touched.nom && <div className="text-red-500 text-sm">{errors.nom}</div>}
+                <Field type="text" name="nom" id="nom" disabled className={disabledInputClass} />
+                {errors.nom && touched.nom && <div className="text-red-500 text-sm mt-1">{errors.nom}</div>}
               </div>
-
               <div>
                 <label htmlFor="prenom" className="block font-semibold mb-1">Prénom</label>
-                <Field
-                  type="text"
-                  name="prenom"
-                  id="prenom"
-                  disabled
-                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
-                />
-                {errors.prenom && touched.prenom && <div className="text-red-500 text-sm">{errors.prenom}</div>}
+                <Field type="text" name="prenom" id="prenom" disabled className={disabledInputClass} />
+                {errors.prenom && touched.prenom && <div className="text-red-500 text-sm mt-1">{errors.prenom}</div>}
               </div>
             </div>
 
-            {/* EMAIL / TÉLÉPHONE */}
-            <div className="grid md:grid-cols-2 gap-4 mt-4">
+            {/* EMAIL / TELEPHONE */}
+            <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="email" className="block font-semibold mb-1">Email</label>
-                <Field
-                  type="email"
-                  name="email"
-                  id="email"
-                  disabled
-                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
-                />
-                {errors.email && touched.email && <div className="text-red-500 text-sm">{errors.email}</div>}
+                <Field type="email" name="email" id="email" disabled className={disabledInputClass} />
+                {errors.email && touched.email && <div className="text-red-500 text-sm mt-1">{errors.email}</div>}
               </div>
-
               <div>
                 <label htmlFor="telephone" className="block font-semibold mb-1">Téléphone</label>
-                <Field
-                  type="tel"
-                  name="telephone"
-                  id="telephone"
-                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-black dark:text-white"
-                />
-                {errors.telephone && touched.telephone && <div className="text-red-500 text-sm">{errors.telephone}</div>}
+                <Field type="tel" name="telephone" id="telephone" maxLength={15} className={inputClass} />
+                {errors.telephone && touched.telephone && <div className="text-red-500 text-sm mt-1">{errors.telephone}</div>}
               </div>
             </div>
-
+ 
             {/* ADRESSE */}
-            <div className="mt-4">
+            <div>
               <label htmlFor="adresse" className="block font-semibold mb-1">Adresse</label>
-              <Field
-                type="text"
-                name="adresse"
-                id="adresse"
-                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-black dark:text-white"
-              />
-              {errors.adresse && touched.adresse && <div className="text-red-500 text-sm">{errors.adresse}</div>}
+              <Field type="text" name="adresse" id="adresse" maxLength={255} className={inputClass} />
+              {errors.adresse && touched.adresse && <div className="text-red-500 text-sm mt-1">{errors.adresse}</div>}
             </div>
 
-            {/* COMPLÉMENT */}
-            <div className="mt-4">
+            {/* COMPLEMENT ADRESSE */}
+            <div>
               <label htmlFor="complementAdresse" className="block font-semibold mb-1">Complément d'adresse</label>
-              <Field
-                type="text"
-                name="complementAdresse"
-                id="complementAdresse"
-                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-black dark:text-white"
-              />
+              <Field type="text" name="complementAdresse" id="complementAdresse" maxLength={100} className={inputClass} />
+              {errors.complementAdresse && touched.complementAdresse && (
+                <div className="text-red-500 text-sm mt-1">{errors.complementAdresse}</div>
+              )}
             </div>
 
             {/* VILLE / RÉGION / CODE POSTAL */}
-            <div className="grid md:grid-cols-3 gap-4 mt-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <label htmlFor="ville" className="block font-semibold mb-1">Ville</label>
-                <Field
-                  type="text"
-                  name="ville"
-                  id="ville"
-                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-black dark:text-white"
-                />
-                {errors.ville && touched.ville && <div className="text-red-500 text-sm">{errors.ville}</div>}
+                <Field type="text" name="ville" id="ville" maxLength={100} className={inputClass} />
+                {errors.ville && touched.ville && <div className="text-red-500 text-sm mt-1">{errors.ville}</div>}
               </div>
-
               <div>
                 <label htmlFor="region" className="block font-semibold mb-1">Région</label>
-                <Field
-                  type="text"
-                  name="region"
-                  id="region"
-                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-black dark:text-white"
-                />
-                {errors.region && touched.region && <div className="text-red-500 text-sm">{errors.region}</div>}
+                <Field type="text" name="region" id="region" maxLength={100} className={inputClass} />
+                {errors.region && touched.region && <div className="text-red-500 text-sm mt-1">{errors.region}</div>}
               </div>
-
               <div>
                 <label htmlFor="codePostal" className="block font-semibold mb-1">Code Postal</label>
-                <Field
-                  type="text"
-                  name="codePostal"
-                  id="codePostal"
-                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-black dark:text-white"
-                />
-                {errors.codePostal && touched.codePostal && <div className="text-red-500 text-sm">{errors.codePostal}</div>}
+                <Field type="text" name="codePostal" id="codePostal" maxLength={10} className={inputClass} />
+                {errors.codePostal && touched.codePostal && <div className="text-red-500 text-sm mt-1">{errors.codePostal}</div>}
               </div>
             </div>
 
             {/* PAYS */}
-            <div className="mt-4">
+            <div>
               <label htmlFor="pays" className="block font-semibold mb-1">Pays</label>
-              <Field
-                type="text"
-                name="pays"
-                id="pays"
-                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-black dark:text-white"
-              />
-              {errors.pays && touched.pays && <div className="text-red-500 text-sm">{errors.pays}</div>}
+              <CountryListbox name="pays" />
+              {errors.pays && touched.pays && (
+                <div className="text-red-500 text-sm mt-1">{errors.pays}</div>
+              )}
             </div>
 
             {/* ENTREPRISE / TVA */}
-            <div className="mt-4">
+            <div>
               <label htmlFor="nomEntreprise" className="block font-semibold mb-1">Nom de l'entreprise</label>
-              <Field
-                type="text"
-                name="nomEntreprise"
-                id="nomEntreprise"
-                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-black dark:text-white"
-              />
-              {errors.nomEntreprise && touched.nomEntreprise && <div className="text-red-500 text-sm">{errors.nomEntreprise}</div>}
+              <Field type="text" name="nomEntreprise" id="nomEntreprise" maxLength={255} className={inputClass} />
+              {errors.nomEntreprise && touched.nomEntreprise && <div className="text-red-500 text-sm mt-1">{errors.nomEntreprise}</div>}
             </div>
 
-            <div className="mt-4">
+            <div>
               <label htmlFor="numeroTva" className="block font-semibold mb-1">Numéro de TVA</label>
-              <Field
-                type="text"
-                name="numeroTva"
-                id="numeroTva"
-                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-black dark:text-white"
-              />
-              {errors.numeroTva && touched.numeroTva && <div className="text-red-500 text-sm">{errors.numeroTva}</div>}
+              <Field type="text" name="numeroTva" id="numeroTva" maxLength={14} className={inputClass} />
+              {errors.numeroTva && touched.numeroTva && <div className="text-red-500 text-sm mt-1">{errors.numeroTva}</div>}
             </div>
 
             <button

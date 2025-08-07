@@ -130,40 +130,52 @@ export default function BestProductsByCategoryChart() {
       )}
 
       {/* Pie Chart */}
-      {data.length > 0 ? (
-        <div className="relative">
-          <ResponsiveContainer width="100%" height={320}>
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={renderCustomizedLabel}
-                outerRadius={150}
-                innerRadius={60}
-                dataKey="value"
-              >
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
+      <div>
+        {data.length > 0 ? (
+          <div className="flex justify-center w-full">
+            <div
+              className="relative w-full flex justify-center items-center mx-auto"
+              style={{
+                maxWidth: "100%",
+                minWidth: 600,
+                height: 350,
+              }}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={renderCustomizedLabel}
+                    outerRadius="90%"
+                    innerRadius="40%"
+                    dataKey="value"
+                  >
+                    {data.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
 
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-gray-800 dark:text-white">{total}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-300">
-                {total === 1 ? "Vente" : "Ventes"}
+              {/* Centre du pie chart */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-800 dark:text-white">{total}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-300">
+                    {total === 1 ? "Vente" : "Ventes"}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      ) : selectedId && (
-        <p className="text-center text-gray-500 dark:text-gray-300">Aucun produit à afficher.</p>
-      )}
+        ) : selectedId && (
+          <p className="text-center text-gray-500 dark:text-gray-300">Aucun produit à afficher.</p>
+        )}
+      </div>
 
       {error && <p className="text-red-600 mt-4 text-center">{error}</p>}
     </div>

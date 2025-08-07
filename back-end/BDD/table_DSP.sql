@@ -19,10 +19,10 @@ CREATE TABLE IF NOT EXISTS informations_facturation (
     nom_entreprise VARCHAR(255),
     numero_tva VARCHAR(50),
     adresse_ligne1 VARCHAR(255) NOT NULL,
-    adresse_ligne2 VARCHAR(255),
+    adresse_ligne2 VARCHAR(100),
     ville VARCHAR(100),
     region VARCHAR(100),
-    code_postal VARCHAR(20),
+    code_postal VARCHAR(10),
     pays VARCHAR(100),
     telephone VARCHAR(15),
     FOREIGN KEY (id_user) REFERENCES users(id_user)

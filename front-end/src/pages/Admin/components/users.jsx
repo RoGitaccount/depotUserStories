@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import axiosInstance from "../../../services/axiosInstance";
+import { toast, Bounce } from "react-toastify";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -40,7 +41,20 @@ const UserList = () => {
     e.preventDefault();
 
     if (!editingId) {
-      alert("Sélectionnez un utilisateur à modifier.");
+      // alert("Sélectionnez un utilisateur à modifier.");
+      toast.info('Sélectionnez un utilisateur à modifier.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
       return;
     }
 
@@ -121,7 +135,7 @@ const UserList = () => {
   }
 
   return (
-    <div className="text-black dark:text-white min-h-screen bg-gradient-to-b from-green-100 via-white to-green-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
+    <div className="text-black dark:text-white min-h-screen bg-gradient-to-b  from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
       <h2 className="text-2xl font-bold mb-6">Gestion des utilisateurs</h2>
       <div className="flex flex-col md:flex-row gap-8">
         {/* Formulaire */}

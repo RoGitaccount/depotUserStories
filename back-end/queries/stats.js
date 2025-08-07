@@ -1,6 +1,3 @@
-// // si tu as une colonne quantité dans details_commandes
-// // Alors remplace COUNT(*) par SUM(quantité) dans toutes les requêtes pour avoir un comptage réel du nombre de produits vendus.
-
 export function show_sales_and_avg_basket(client, period, callback) {
   let selectClause, groupClause, interval, orderClause, limitClause = "";
 
@@ -48,16 +45,6 @@ export function show_sales_and_avg_basket(client, period, callback) {
 
   client.query(query, callback);
 }
-
-
-
-
-// //----------------
-// catégorie (camembert)
-// //----------------
-
-// 10 article les plus populaire par catégorie (dans le front faire une liste
-//  déroulante de la catégorie souhaité et lorsque l'on recherche cela va prendre l'id et l'injecter dans cette requete)
 
   export function show_best_product_by_category(client, id_categorie, callback) {
     const query = ` SELECT 

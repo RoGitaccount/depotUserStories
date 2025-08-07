@@ -11,7 +11,6 @@ const WishlistPage = () => {
   const [error, setError] = useState(null);
   const hasStock = wishlist.some((produit) => produit.stock > 0);
 
-
   useEffect(() => {
     loadWishlist();
   }, []);
@@ -65,8 +64,20 @@ const WishlistPage = () => {
     try {
       await axiosInstance.delete(`/wishlist/delete/${id_produit}`);
       loadWishlist();
-    } catch {
-      alert("Erreur lors de la suppression.");
+    } catch {      
+      toast.error('Erreur lors de la suppression.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
     }
   };
 
@@ -75,15 +86,46 @@ const WishlistPage = () => {
       await axiosInstance.delete('/wishlist/clear');
       loadWishlist();
     } catch {
-      alert("Erreur lors du vidage de la wishlist.");
+      toast.error('Erreur lors du vidage de la wishlist.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
     }
   };
 
-  const handleAddToCart = async (id_produit) => {
+const handleAddToCart = async (id_produit) => {
   try {
+    const produit = wishlist.find(p => p.id_produit === id_produit && Number(p.stock) > 0);
+
+    if (!produit) {
+      toast.info("Ce produit est en rupture de stock.", {
+        className: "toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+      });
+      return;
+    }
+
     await axiosInstance.post(`/wishlist/add_to_cart/${id_produit}`, {});
-    toast.success("Article ajouté au panier !",{
-      position: "bottom-right",
+
+    toast.success("Article ajouté au panier !", {
+      className: "toast-top-position",
+      position: "top-right",
       autoClose: 3000,
       hideProgressBar: true,
       closeOnClick: true,
@@ -92,37 +134,69 @@ const WishlistPage = () => {
       theme: "light",
       transition: Bounce,
     });
+
     loadWishlist();
   } catch {
-    toast.error("Erreur lors de l'ajout au panier.");
+    toast.error("Erreur lors de l'ajout au panier.", {
+      className: "toast-top-position",
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "light",
+      transition: Bounce,
+    });
   }
 };
 
 const handleAddAllToCart = async () => {
   try {
-    const produitsEnStock = wishlist.filter(produit => Number(produit.stock) > 0);
+    const produitsEnStock = wishlist.filter(p => Number(p.stock) > 0);
 
     if (produitsEnStock.length === 0) {
-      alert("Aucun produit en stock à ajouter.");
+      toast.info("Aucun produit en stock à ajouter.", {
+        className: "toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+      });
       return;
     }
 
-    for (const produit of produitsEnStock) {
-      try {
-        console.log(JSON.stringify(produit, null, 2));
-        console.log(JSON.stringify(produitsEnStock, null, 2));
-        await axiosInstance.post(`/wishlist/add_to_cart/${produit.id_produit}`);
-      } catch (err) {
-        console.warn(`Erreur lors de l'ajout du produit ID ${produit.id_produit} :`, err.response?.data || err.message);
-        // Optionnel : continuer ou interrompre selon ton besoin
-      }
-    }
+    await axiosInstance.post('/wishlist/add_all_to_cart', {});
 
-    alert("Les produits en stock ont été ajoutés au panier.");
+    toast.success("Articles ajoutés au panier !", {
+      className: "toast-top-position",
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "light",
+      transition: Bounce,
+    });
+
     loadWishlist();
-  } catch (error) {
-    console.error("Erreur globale :", error);
-    alert("Erreur lors de l'ajout des produits au panier.");
+  } catch {
+    toast.error("Erreur lors de l'ajout de tous les produits au panier.", {
+      className: "toast-top-position",
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "light",
+      transition: Bounce,
+    });
   }
 };
 

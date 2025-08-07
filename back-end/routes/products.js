@@ -38,7 +38,10 @@ router.get("/",
   });
 });
 
-router.get("/:id/image", (req, res) => {
+router.get("/:id/image",
+  [param("id").isInt().withMessage("'id' doit être un entier.")],
+  validateRequest,
+  (req, res) => {
   getConnection((err, client) => {
     if (err) return res.status(500).json({ message: "Erreur de connexion à la base de données." });
     const id = req.params.id;
@@ -63,6 +66,7 @@ router.get("/:id/image", (req, res) => {
   });
 });
 
+// Ajout d'un nouveau produit
 router.post(
   "/add",
   authenticateToken,
@@ -116,6 +120,7 @@ router.post(
   }
 );
 
+//modification d'un produit
 router.put(
   "/update/:id_produit",
   authenticateToken,
@@ -216,7 +221,10 @@ router.delete(
   }
 );
 
-router.get("/:id_produit/suggestions", (req, res) => {
+router.get("/:id_produit/suggestions",
+  [param("id_produit").isInt().withMessage("'id_produit' doit être un entier.")],
+  validateRequest,
+  (req, res) => {
   getConnection((err, connection) => {
     if (err) {
       return res.status(500).json({ message: "Erreur de connexion à la base de données." });
@@ -247,15 +255,11 @@ router.get("/:id_produit/suggestions", (req, res) => {
       if (err) {
         return res.status(500).json({ message: "Erreur lors de la récupération des suggestions." });
       }
-
       res.status(200).json(results);
     });
   });
 });
 
-
-
-// ✅ Ensuite seulement : GET /api/products/:id_produit
 router.get(
   "/:id_produit",
   logActivity("Obtenir un produit par ID"),

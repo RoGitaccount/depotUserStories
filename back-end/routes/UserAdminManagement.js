@@ -105,8 +105,13 @@ router.delete("/delete/:id",
 );
 
 // route pour recupérer sa facture (dispo pour l'utilisateur (en telechargement retirer facture param qui est en token) ou l'admin garder le param pour l'admin)
-router.get('/facture/:facture_token', (req, res) => {
+router.get('/facture/:facture_token',
+  authenticateToken,
+  updateLastActivity,
+  logActivity("Récupération de la facture"),
+  (req, res) => {
   const { facture_token } = req.params;
+  const userId = req.user.id; // récupère l'id de l'utilisateur connecté
   
   getConnection((err, client) => {
     if (err) {
@@ -131,6 +136,12 @@ router.get('/facture/:facture_token', (req, res) => {
         }
         
         const commande = commandes[0];
+
+        // Vérifie que la commande appartient à l'utilisateur connecté
+          if (commande.id_user !== userId && !req.user.isAdmin) {
+            client.release();
+            return res.status(403).json({ error: "Accès interdit" });
+          }
         
         // Récupère les détails de la commande (produits)
         client.query(

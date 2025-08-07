@@ -12,6 +12,7 @@ import { cartService } from '../../services/api';
 import { isAuthenticated, fetchUserFromCookie } from '../../services/auth';
 import axios from 'axios';
 import axiosInstance from '../../services/axiosInstance';
+import { toast, Bounce } from "react-toastify";
 
 export const isValidTvaFormat = (numeroTva) => {
   if (!numeroTva) return false;
@@ -109,18 +110,57 @@ const CheckoutPage = () => {
   const handleBillingSubmit = async (billingData) => {
     const isAuth = await isAuthenticated();
     if (!isAuth) {
-      alert("Votre session a expiré, veuillez vous reconnecter.");
+      // alert("Votre session a expiré, veuillez vous reconnecter.");
+      toast.warning('Votre session a expiré, veuillez vous reconnecter.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
       window.location.href = "/login";
       return;
     }
 
     if (!isValidTvaFormat(billingData.numeroTva)) {
-      alert("Numéro de TVA invalide");
+      // alert("Numéro de TVA invalide");
+      toast.error('Numéro de TVA invalide',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
       return;
     }
 
     if (!cartItems || cartItems.length === 0 || (total - reduction) <= 0) {
-      alert("Votre panier est vide ou le montant total est nul.");
+      // alert("Votre panier est vide ou le montant total est nul.");
+      toast.error('Votre panier est vide ou le montant total est nul.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
       return;
     }
 
@@ -153,7 +193,20 @@ const CheckoutPage = () => {
       window.location.href = response.data.url;
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Une erreur est survenue lors du paiement.');
+      // alert('Une erreur est survenue lors du paiement.');
+      toast.error('Une erreur est survenue lors du paiement.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
     }
   };
 
@@ -167,14 +220,40 @@ const CheckoutPage = () => {
       setReduction(reductionAmount);
       setPromoCode(code);
       setPromoId(result.id_promotion);
-      alert(result.message);
+      // alert(result.message);
+      toast.success(result.message,
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
     } catch (error) {
       console.error('Erreur code promo:', error);
       setReductionPercent(0);
       setReduction(0);
       setPromoCode('');
       setPromoId(null);
-      alert(error.message || "Code promo invalide.");
+      // alert(error.message || "Code promo invalide.");
+      toast.error(error.message || 'Code promo invalide.',
+        {
+        className:"toast-top-position",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Bounce,
+        }
+      );
     }
   };
 

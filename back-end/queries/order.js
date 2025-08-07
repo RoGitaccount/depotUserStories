@@ -1,27 +1,3 @@
-// export function Insert_order(client, {
-//   id_user,
-//   montant_total,
-//   montant_reduction = 0.00,
-//   id_promotion = null,
-//   statut = 'en attente' // Valeur de secours
-// }, callback) {
-//   const query = `
-//     INSERT INTO commandes (
-//       id_user,
-//       montant_total,
-//       montant_reduction,
-//       id_promotion,
-//       statut
-//     )
-//     VALUES (?, ?, ?, ?, ?)
-//   `;
-//   client.query(
-//     query,
-//     [id_user, montant_total, montant_reduction, id_promotion, statut],
-//     callback
-//   );
-// }
-
 import crypto from 'crypto';
 
 export function Insert_order(client, {
@@ -167,6 +143,7 @@ export function get_user_order_history(client, id_user, filter_date = 'all', ann
       c.date_commande,
       c.statut,
       c.montant_total,
+      c.facture_token,
       p.id_produit,
       p.titre,
       p.description,

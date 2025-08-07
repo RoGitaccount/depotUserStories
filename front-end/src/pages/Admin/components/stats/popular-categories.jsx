@@ -116,27 +116,33 @@ export default function PopularCategoriesChart() {
           <span className="font-medium">{totalVentes.toLocaleString()}</span>{" "}
           {totalVentes === 1 ? "vente" : "ventes"}
         </p>
-
       </div>
 
       <div >
         {/* Pie Chart */}
-        <div className="flex justify-center">
-          <div className="relative">
-            <ResponsiveContainer width={400} height={350}>
-              <PieChart>
-                <Pie
-                  data={data}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                  outerRadius={170}
-                  innerRadius={60}
-                  dataKey="value"
-                  stroke="#fff"
-                  strokeWidth={2}
-                >
+        <div className="flex justify-center w-full">
+            <div
+              className="relative w-full flex justify-center items-center mx-auto"
+              style={{
+                maxWidth: 350, // largeur max du graphique
+                minWidth: 220, // largeur min pour lisibilité
+                height: 350,   // hauteur fixe pour garder la forme
+              }}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={renderCustomizedLabel}
+                outerRadius="90%"
+                innerRadius="40%"
+                dataKey="value"
+                stroke="#fff"
+                strokeWidth={2}
+              >
                   {data.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}

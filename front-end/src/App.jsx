@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Navigate, BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthProvider';
 import { ToastContainer, Bounce } from 'react-toastify';
 
@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // Components
 import Navbar from './components/PageComponents/Navbar';
+import Footer from './components/PageComponents/Footer';
 import Register from './pages/Authentication/register';
 import ForgotPassword from './components/Credentials/forgot-password';
 import VerifyCodeLogin from './components/Credentials/login-verifycode';
@@ -34,51 +35,70 @@ import DashboardAdmin from './pages/Admin/dashboard_admin.jsx';
 import CategoryList from './pages/Admin/components/category.jsx';
 import Offers from './components/Offer/offer';
 
+import ScrollToTop from './components/PageComponents/ScrollToTop';
+
+function AppContent() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const isCatalogueRoute = location.pathname.startsWith('/catalog');
+  const isSuccessRoute = location.pathname.startsWith('/success');
+
+  return (
+    <>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Accueil />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/resetpassword" element={<ResetPassword />} />
+        <Route path="/verify-code" element={<VerifyCodeLogin />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/success" element={<SuccessPage />} />
+        <Route path="/catalog" element={<CataloguePage />} />
+        <Route path="/produit/:id" element={<ProductDetailPage />} />
+        <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
+        <Route path="/MyData" element={<MyDataPage />} />
+        <Route path="/Contact" element={<ContactPage />} />
+
+        <Route path="/admin" element={
+          <AdminRoute>
+            <DashboardAdmin />
+          </AdminRoute>
+        } />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+
+      {/* Affiche le Footer uniquement si ce n'est pas une route admin */}
+      {!isSuccessRoute && !isAdminRoute && !isCatalogueRoute && <Footer />}
+
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
+    </>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Accueil />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/resetpassword" element={<ResetPassword />} />
-          <Route path="/verify-code" element={<VerifyCodeLogin />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/success" element={<SuccessPage />} />
-          <Route path="/catalog" element={<CataloguePage />} />
-          <Route path="/produit/:id" element={<ProductDetailPage />} />
-          <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
-          <Route path="/MyData" element={<MyDataPage />} />
-          <Route path="/Contact" element={<ContactPage />} />
-
-          <Route path="/admin" element={
-            <AdminRoute>
-              <DashboardAdmin />
-            </AdminRoute>
-          } />
-
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-
-        <ToastContainer
-          position="bottom-right"
-          autoClose={3000}
-          hideProgressBar
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-          transition={Bounce}
-        />
+        <ScrollToTop />
+        <AppContent />
       </Router>
     </AuthProvider>
   );
