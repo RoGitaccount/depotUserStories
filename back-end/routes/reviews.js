@@ -39,7 +39,7 @@ router.post(
         Update_product_average(client, id_produit, (err, results) => {
           client.release(); // ← on libère ici, après la 2e requête
           if (err) {
-            return res.status(500).json({ message: "Erreur lors de la mise à jour de la note moyenne." });
+            return res.status(500).json({ message: "Erreur lors de la mise à jour de la note moyenne." }, results);
           }
 
           return res.status(201).json({ message: "Avis ajouté avec succès." });

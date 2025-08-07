@@ -31,45 +31,19 @@ const ProductDetailPage = () => {
     try {
       const res = await fetch(`http://localhost:8001/api/products/${id}/suggestions`);
       const data = await res.json();
-  
-      // Récupérer les images pour chaque suggestion
-      const suggestionsWithImages = await Promise.all(
-        data.map(async (prod) => {
-          if (prod.image) {
-            try {
-              const imgRes = await fetch(`http://localhost:8001/api/products/${prod.id_produit}/image`);
-              const blob = await imgRes.blob();
-              const imageUrl = URL.createObjectURL(blob);
-              return { ...prod, imageObjectUrl: imageUrl };
-            } catch (imgErr) {
-              console.error(`Erreur chargement image produit ${prod.id_produit}`, imgErr);
-              return prod; // Retourne sans image
-            }
-          } else {
-            return prod;
-          }
-        })
-      );
-  
-      setSuggestions(suggestionsWithImages);
+      setSuggestions(data); // image_url déjà inclus dans data
     } catch (error) {
       console.error("Erreur récupération suggestions :", error);
     }
   };
-
+  
+  
   const fetchProduit = async () => {
     try {
       const res = await fetch(`http://localhost:8001/api/products/${id}`);
       const data = await res.json();
   
-      // Si l'image est un Blob (base64 ou autre), la récupérer à part
-      if (data.image) {
-        const imageRes = await fetch(`http://localhost:8001/api/products/${id}/image`);
-        const blob = await imageRes.blob();
-        const imageUrl = URL.createObjectURL(blob);
-        data.imageObjectUrl = imageUrl;
-      }
-  
+      // image_url déjà dans data
       setProduit(data);
     } catch (error) {
       console.error("Erreur récupération produit :", error);
@@ -77,6 +51,7 @@ const ProductDetailPage = () => {
       setLoading(false);
     }
   };
+  
 
   // const fetchAvis = async () => {
   //   try {
@@ -260,13 +235,13 @@ const handleAddToWishlist = async () => {
           {/* Colonne gauche : infos produit */}
           <div className="flex-1">
             <h1 className="text-3xl font-bold mb-4">{produit.titre}</h1>
-              {produit.imageObjectUrl && (
-                <img
-                  src={produit.imageObjectUrl}
-                  alt={produit.nom}
-                  className="w-full max-w-md object-cover rounded-lg mb-4"
-                />
-              )}
+            {produit.image_url && (
+              <img
+                src={produit.image_url}
+                alt={produit.titre}
+                className="w-full max-w-md object-cover rounded-lg mb-4"
+              />
+            )}
             <p className="text-gray-700 dark:text-gray-300 mb-4">{produit.description}</p>
           </div>
 

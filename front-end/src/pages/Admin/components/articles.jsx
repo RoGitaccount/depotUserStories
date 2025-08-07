@@ -4,8 +4,6 @@ import axiosInstance from "../../../services/axiosInstance";
 
 const ArticlesManagement = () => {
     const [categories, setCategories] = useState([]);
-
-    const [editingId, setEditingId] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [searchArticleTerm, setSearchArticleTerm] = useState("");
 
@@ -113,15 +111,7 @@ const ArticlesManagement = () => {
     setLoading(true);
     setError(null);
 
-    // const token = localStorage.getItem("token");
-    // const headers = {
-    //   ...(token && { Authorization: `Bearer ${token}` }),
-    //   // Pas de Content-Type, axios le définit automatiquement pour FormData
-    // };
-
-
     console.log("Catégories sélectionnées :", selectedCategories);
-
     try {
       // Utiliser FormData pour envoyer le fichier image
       const formData = new FormData();

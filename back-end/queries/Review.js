@@ -10,7 +10,7 @@ export function Insert_review(client, { id_user, id_produit, note, commentaire }
 }
 
 export function Update_product_average(client, id_produit, callback) {
-  const query = "CALL UpdateProductAverage(?)";
+  const query = "CALL UpdateNoteMoyenne(?)";
   client.query(query, [id_produit], (err, results) => {
     if (err) {
       return callback(err, null);
