@@ -1,7 +1,6 @@
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Footer from "../../components/PageComponents/Footer";
 import axiosInstance from '../../services/axiosInstance';

@@ -9,6 +9,7 @@ const WishlistList = ({ items, onRemove, onAddToCart,stock }) => {
     return <p className="text-center text-lg mt-6">Votre wishlist est vide</p>;
   }
 
+  //console.log(items);
   return (
     <div className="space-y-6">
       {items.map((item) => (
@@ -23,6 +24,7 @@ const WishlistList = ({ items, onRemove, onAddToCart,stock }) => {
               className="w-28 h-28 object-cover rounded shadow bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 p-1  hover:scale-105 hover:opacity-90 transition duration-200 ease-in-out"
             />
           </Link>
+    
 
           <div className="flex-1 space-y-2">
             {/* Lien sur le titre */}

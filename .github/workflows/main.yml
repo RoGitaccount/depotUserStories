@@ -1,4 +1,3 @@
-
 name: CI - Backend Jest (Mock DB)
 
 on:
@@ -21,7 +20,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-
+          cache: 'npm'
 
       # 3. Installer toutes les dépendances backend
       - name: Install backend dependencies

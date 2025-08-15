@@ -5,8 +5,6 @@ import TextareaWithLimit from "../../../components/PageComponents/textarea";
 
 const ArticlesManagement = () => {
     const [categories, setCategories] = useState([]);
-
-    const [editingId, setEditingId] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [searchArticleTerm, setSearchArticleTerm] = useState("");
 
@@ -132,7 +130,6 @@ const ArticlesManagement = () => {
     setError(null);
 
     console.log("Catégories sélectionnées :", selectedCategories);
-
     try {
       // Utiliser FormData pour envoyer le fichier image
       const formData = new FormData();
