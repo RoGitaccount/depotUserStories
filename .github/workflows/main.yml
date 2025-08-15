@@ -30,22 +30,20 @@ jobs:
       # 4. Installer wait-on
       - name: Install wait-on
         run: npm install -g wait-on
-      
+
       # 5. Lancer front + back en tâche de fond
       - name: Start frontend & backend
         run: |
-          # Démarrer le backend
-          nohup npm run start:backend > backend.log 2>&1 &
-          # Démarrer le frontend
-          nohup npm run dev:frontend > frontend.log 2>&1 &
-          # Petit délai pour laisser les serveurs se lancer
-          sleep 5
-      
+          cd backend
+          nohup npm start > backend.log 2>&1 &
+          cd ../frontend
+          nohup npm run dev > frontend.log 2>&1 &
+          sleep 10
+
       # 6. Attendre que les serveurs soient prêts
       - name: Wait for servers
-        id: wait-servers
         run: |
-          wait-on -t 60000 http://localhost:5173 http://localhost:8001
+          npx wait-on -t 60000 http://localhost:5173 http://localhost:8001
           echo "Servers are ready"
 
 
