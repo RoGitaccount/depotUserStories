@@ -1,6 +1,4 @@
-
-
-name: CI - Back-End Jest
+name: CI - Backend Jest (Mock DB)
 
 on:
   push:
@@ -11,45 +9,7 @@ on:
       - master
 
 jobs:
-  start-backend:
-    runs-on: ubuntu-latest
-    outputs:
-      server-ready: ${{ steps.wait-server.outcome }}
-    steps:
-      # 1. Cloner le dépôt
-      - uses: actions/checkout@v4
-
-      # 2. Installer Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.16.0'
-
-      # 3. Installer les dépendances du back-end
-      - name: Install back-end dependencies
-        run: |
-          cd back-end
-          npm install
-
-      # 4. Installer wait-on pour attendre le serveur
-      - name: Install wait-on
-        run: npm install -g wait-on
-
-      # 5. Lancer le serveur back-end (DB mockée possible)
-      - name: Start backend server
-        run: |
-          cd back-end
-          node index.js &
-          sleep 10  # temps pour que le serveur soit prêt
-
-      # 6. Attendre que le serveur soit prêt
-      - name: Wait for server
-        run: |
-          npx wait-on -t 30000 http://localhost:8001
-          echo "Backend server ready"
-
-  run-tests:
-    needs: start-backend
+  test-backend:
     runs-on: ubuntu-latest
     steps:
       # 1. Cloner le dépôt
@@ -60,10 +20,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-          cache: 'npm'
 
-      # 3. Installer les dépendances du back-end
-      - name: Install back-end dependencies
+      # 3. Installer toutes les dépendances backend
+      - name: Install backend dependencies
         run: |
           cd back-end
           npm install
@@ -74,11 +33,12 @@ jobs:
           cd back-end
           npm install --save-dev @babel/core @babel/preset-env babel-jest
 
-      # 5. Lancer les tests Jest
+
+      # 4. Lancer les tests Jest avec NODE_ENV=test
       - name: Run Jest tests
         run: |
           cd back-end
-          npx jest --runInBand --detectOpenHandles --passWithNoTests
+          NODE_ENV=test npx jest --runInBand --detectOpenHandles
 
       # 6. Upload logs si échec
       - name: Upload Jest logs on failure
