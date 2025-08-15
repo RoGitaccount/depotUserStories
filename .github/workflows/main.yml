@@ -1,0 +1,36 @@
+
+name: CI - Backend Jest (Mock DB)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Cloner le dépôt
+      - uses: actions/checkout@v4
+
+      # 2. Installer Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+
+
+      # 3. Installer toutes les dépendances backend
+      - name: Install backend dependencies
+        run: |
+          cd back-end
+          npm install
+
+      # 4. Lancer les tests Jest avec NODE_ENV=test
+      - name: Run Jest tests
+        run: |
+          cd back-end
+          NODE_ENV=test npx jest --runInBand --detectOpenHandles
