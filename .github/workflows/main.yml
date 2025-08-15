@@ -1,4 +1,5 @@
-name: CI - Full Stack Jest
+
+name: CI - Backend Jest (Mock DB)
 
 on:
   push:
@@ -9,70 +10,27 @@ on:
       - master
 
 jobs:
-  start-servers:
+  test-backend:
     runs-on: ubuntu-latest
-    outputs:
-      server-ready: ${{ steps.wait-servers.outcome }}
     steps:
       # 1. Cloner le dépôt
       - uses: actions/checkout@v4
 
-      # 2. Installer Node.js 22.16.0
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.16.0'
-
-      # 3. Installer toutes les dépendances pour front + back
-      - name: Install dependencies
-        run: |
-          npm install
-          cd back-end && npm install
-          cd ../front-end && npm install
-
-      # 4. Installer wait-on
-      - name: Install wait-on
-        run: npm install -g wait-on
-
-      # Lancer front + back en parallèle
-      - name: Start frontend & backend
-        run: |
-          npm run dev &
-          sleep 15
-
-      # Attendre que les serveurs soient prêts (ports à adapter)
-      - name: Wait for servers
-        run: |
-          npx wait-on -t 60000 http://localhost:5173 http://localhost:8001
-          echo "Servers are ready"
-
-
-      # 7. Upload des logs si ça échoue
-      - name: Upload server logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: server-logs
-          path: server.log
-
-  run-tests:
-    needs: start-servers
-    runs-on: ubuntu-latest
-    steps:
-      # a. Cloner le dépôt
-      - uses: actions/checkout@v4
-
-      # b. Installer Node.js
+      # 2. Installer Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
           cache: 'npm'
 
-      # c. Installer les dépendances
-      - name: Install dependencies
-        run: npm install
+      # 3. Installer toutes les dépendances backend
+      - name: Install backend dependencies
+        run: |
+          cd back-end
+          npm install
 
-      # d. Lancer les tests Jest
+      # 4. Lancer les tests Jest avec NODE_ENV=test
       - name: Run Jest tests
-        run: npx jest --runInBand --detectOpenHandles
+        run: |
+          cd back-end
+          NODE_ENV=test npx jest --runInBand --detectOpenHandles
