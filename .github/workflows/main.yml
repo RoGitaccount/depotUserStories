@@ -1,0 +1,76 @@
+name: CI - Full Stack Jest
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  start-servers:
+    runs-on: ubuntu-latest
+    outputs:
+      server-ready: ${{ steps.wait-servers.outcome }}
+    steps:
+      # 1. Cloner le dépôt
+      - uses: actions/checkout@v4
+
+      # 2. Installer Node.js 22.16.0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: 'npm'
+
+      # 3. Installer toutes les dépendances à la racine
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Installer wait-on
+      - name: Install wait-on
+        run: npm install -g wait-on
+
+      # 5. Lancer front + back en tâche de fond
+      - name: Start frontend & backend
+        run: |
+          nohup npm run dev > server.log 2>&1 &
+          sleep 5
+
+      # 6. Attendre que les serveurs soient prêts
+      - name: Wait for servers
+        id: wait-servers
+        run: |
+          wait-on http://localhost:5173/ http://localhost:8001/
+          echo "Servers are ready"
+
+      # 7. Upload des logs si ça échoue
+      - name: Upload server logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-logs
+          path: server.log
+
+  run-tests:
+    needs: start-servers
+    runs-on: ubuntu-latest
+    steps:
+      # a. Cloner le dépôt
+      - uses: actions/checkout@v4
+
+      # b. Installer Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: 'npm'
+
+      # c. Installer les dépendances
+      - name: Install dependencies
+        run: npm install
+
+      # d. Lancer les tests Jest
+      - name: Run Jest tests
+        run: npx jest --runInBand --detectOpenHandles
