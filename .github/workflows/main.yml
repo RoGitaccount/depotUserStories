@@ -34,9 +34,9 @@ jobs:
       # 5. Lancer front + back en tâche de fond
       - name: Start frontend & backend
         run: |
-          cd backend
+          cd back-end
           nohup npm start > backend.log 2>&1 &
-          cd ../frontend
+          cd ../front-end
           nohup npm run dev > frontend.log 2>&1 &
           sleep 10
 
