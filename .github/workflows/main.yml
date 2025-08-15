@@ -1,4 +1,4 @@
-name: CI - Full Stack Jest
+name: CI - Backend Jest (Mock DB)
 
 on:
   push:
@@ -9,68 +9,48 @@ on:
       - master
 
 jobs:
-  start-servers:
+  test-backend:
     runs-on: ubuntu-latest
-    outputs:
-      server-ready: ${{ steps.wait-servers.outcome }}
     steps:
       # 1. Cloner le dépôt
       - uses: actions/checkout@v4
 
-      # 2. Installer Node.js 22.16.0
+      # 2. Installer Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-          cache: 'npm'
 
-      # 3. Installer toutes les dépendances à la racine
-      - name: Install dependencies
-        run: npm install
-
-      # 4. Installer wait-on
-      - name: Install wait-on
-        run: npm install -g wait-on
-
-      # 5. Lancer front + back en tâche de fond
-      - name: Start frontend & backend
+      # 3. Installer toutes les dépendances backend (pour supertest il faut juste penser à push le package.json) 
+      - name: Install backend dependencies
         run: |
-          nohup npm run dev > server.log 2>&1 &
-          sleep 5
+          cd back-end
+          npm install
+          npm install --save helmet cors cookie-parser supertest
 
-      # 6. Attendre que les serveurs soient prêts
-      - name: Wait for servers
-        id: wait-servers
+      # 4. Installer Babel pour Jest
+      - name: Install Babel for Jest
         run: |
-          wait-on http://localhost:5173/ http://localhost:8001/
-          echo "Servers are ready"
+          cd back-end
+          npm install --save-dev @babel/core @babel/preset-env babel-jest
 
-      # 7. Upload des logs si ça échoue
-      - name: Upload server logs on failure
+
+     # 5. Lancer les tests Jest avec NODE_ENV=test et variables AES
+      - name: Run Jest tests
+        env:
+          NODE_ENV: test
+          AES_SECRET_KEY: 1234567890abcdef1234567890abcdef
+          AES_IV: abcdef1234567890abcdef1234567890
+          STRIPE_SECRET_KEY: sk_test_1234567890abcdef
+        run: |
+          cd back-end
+          npx jest --runInBand --detectOpenHandles
+
+      # 6. Upload logs si échec
+      - name: Upload Jest logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: server-logs
-          path: server.log
+          name: jest-logs
+          path: back-end/test-results
 
-  run-tests:
-    needs: start-servers
-    runs-on: ubuntu-latest
-    steps:
-      # a. Cloner le dépôt
-      - uses: actions/checkout@v4
-
-      # b. Installer Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.16.0'
-          cache: 'npm'
-
-      # c. Installer les dépendances
-      - name: Install dependencies
-        run: npm install
-
-      # d. Lancer les tests Jest
-      - name: Run Jest tests
-        run: npx jest --runInBand --detectOpenHandles
