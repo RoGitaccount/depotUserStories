@@ -21,11 +21,12 @@ jobs:
         with:
           node-version: '22.16.0'
 
-      # 3. Installer toutes les dépendances backend
+      # 3. Installer toutes les dépendances backend (pour supertest il faut juste penser à push le package.json) 
       - name: Install backend dependencies
         run: |
           cd back-end
           npm install
+          npm install --save-dev supertest
 
       # 4. Installer Babel pour Jest
       - name: Install Babel for Jest
