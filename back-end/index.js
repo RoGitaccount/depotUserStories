@@ -23,6 +23,7 @@ import userdashboardRouter from "./routes/UserDashboard.js"
 import tokenRouteur from './routes/token.js';
 import statsRoutes from "./routes/stats.js";
 import contactRoutes from './routes/contact.js';
+import dotenv from 'dotenv';
 
 
 
@@ -36,7 +37,11 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:8081',
-  'http://127.0.0.1:8081'
+  'http://127.0.0.1:8081',
+
+    // Ajoute ton IP locale ici
+  `http://${process.env.EXPO_IP_URL}:8081`,
+  `exp://${process.env.EXPO_IP_URL}:8081`,
 ];
 
 // Middleware CORS avec cookies (credentials: true)
@@ -106,6 +111,11 @@ app.use('/api/contact', contactRoutes);
 
 app.get("/", (req, res) => res.send('<a href="http://localhost:8001/api-docs/" target="_blank">lien pour tester les divers routes</a> '));
 
-app.listen(port, () => {
+// app.listen(port, () => {
+//   console.log(`Server is running on port ${port}`);
+// });
+
+
+app.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on port ${port}`);
 });
