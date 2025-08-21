@@ -301,8 +301,6 @@ export default function Navbar() {
   const [search, setSearch] = React.useState('');
   const { colorScheme, setColorScheme } = useColorScheme();
 
-  console.log('[Navbar] isAuthenticated=', isAuthenticated, 'user=', user);
-
   if (loading) {
     return null; // ou un petit loader
   }
@@ -318,17 +316,36 @@ export default function Navbar() {
   };
 
   // Charger le thème depuis AsyncStorage au démarrage
-  useEffect(() => {
-    const loadTheme = async () => {
-      try {
-        const saved = await AsyncStorage.getItem('theme');
-        if (saved) setColorScheme(saved === 'dark' ? 'dark' : 'light');
-      } catch (error) {
-        console.error('Erreur lors du chargement du thème :', error);
+  // Navbar.js
+useEffect(() => {
+  console.log('[Navbar] isAuthenticated=', isAuthenticated, 'user=', user);
+}, [isAuthenticated, user]);
+
+useEffect(() => {
+  const loadTheme = async () => {
+    try {
+      const saved = await AsyncStorage.getItem('theme');
+      if (saved && saved !== colorScheme) {
+        setColorScheme(saved);
       }
-    };
-    loadTheme();
-  }, []);
+    } catch (error) {
+      console.error('Erreur lors du chargement du thème :', error);
+    }
+  };
+  loadTheme();
+}, []);
+
+  // useEffect(() => {
+  //   const loadTheme = async () => {
+  //     try {
+  //       const saved = await AsyncStorage.getItem('theme');
+  //       if (saved) setColorScheme(saved === 'dark' ? 'dark' : 'light');
+  //     } catch (error) {
+  //       console.error('Erreur lors du chargement du thème :', error);
+  //     }
+  //   };
+  //   loadTheme();
+  // }, []);
 
   const handleLogout = async () => {
     try {

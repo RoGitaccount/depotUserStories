@@ -8,20 +8,31 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useContext(AuthContext);
   const navigation = useNavigation();
 
-  // Vérifier l'authentification à chaque fois que l'écran est en focus
-  useFocusEffect(
-    React.useCallback(() => {
-      console.log('[ProtectedRoute] Focus - isAuthenticated:', isAuthenticated, 'loading:', loading);
+  // // Vérifier l'authentification à chaque fois que l'écran est en focus
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     console.log('[ProtectedRoute] Focus - isAuthenticated:', isAuthenticated, 'loading:', loading);
       
-      if (!loading && !isAuthenticated) {
-        console.log('[ProtectedRoute] Redirection vers Login');
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Login' }],
-        });
-      }
-    }, [isAuthenticated, loading, navigation])
-  );
+  //     if (!loading && !isAuthenticated) {
+  //       console.log('[ProtectedRoute] Redirection vers Login');
+  //       navigation.reset({
+  //         index: 0,
+  //         routes: [{ name: 'Login' }],
+  //       });
+  //     }
+  //   }, [isAuthenticated, loading, navigation])
+  // );
+
+  useEffect(() => {
+  console.log('[ProtectedRoute] Focus - isAuthenticated:', isAuthenticated, 'loading:', loading);
+  if (!loading && !isAuthenticated) {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  }
+}, [loading, isAuthenticated, navigation]);
+
 
   if (loading) {
     return (
