@@ -1,11 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import ScreenWrapper from '../../components/PageComponent/screenWrapper';
 
-export default function RegisterScreen() {
+export default function ResetPasswordScreen () {
   return (
+    <ScreenWrapper>
     <View style={styles.container}>
       <Text style={styles.text}>ResetPasswordScreen (à compléter)</Text>
     </View>
+    </ScreenWrapper>
   );
 }
 

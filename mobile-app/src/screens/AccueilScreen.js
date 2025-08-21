@@ -1,42 +1,46 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import NavbarNative from '../components/PageComponent/Navbar';
+import ScreenWrapper from '../components/PageComponent/screenWrapper';
 
 export default function AccueilScreen() {
   const navigation = useNavigation();
 
   return (
-    <View style={{ flex: 1 }}>
-      <NavbarNative />
-      <View style={styles.container}>
-        <Text style={styles.title}>Page d'Accueil (publique)</Text>
+    <ScreenWrapper>
+      <View className="flex-1 justify-center items-center px-6">
+        <Text className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">
+          Page d'Accueil (publique)
+        </Text>
+
         <TouchableOpacity
-          style={styles.button}
+          className="bg-green-500 px-8 py-4 rounded-lg"
           onPress={() => navigation.navigate('Cart')}
         >
-          <Text style={styles.buttonText}>Voir mon panier</Text>
+          <Text className="text-white font-bold text-lg">Voir mon panier</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: '#2563eb', marginTop: 12 }]}
+          className="bg-blue-600 px-8 py-4 rounded-lg mt-3"
           onPress={() => navigation.navigate('Login')}
         >
-          <Text style={styles.buttonText}>Se connecter</Text>
+          <Text className="text-white font-bold text-lg">Se connecter</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: '#f59e42', marginTop: 12 }]}
+          className="bg-orange-400 px-8 py-4 rounded-lg mt-3"
           onPress={() => navigation.navigate('Register')}
         >
-          <Text style={styles.buttonText}>S'inscrire</Text>
+          <Text className="text-white font-bold text-lg">S'inscrire</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="bg-purple-600 px-8 py-4 rounded-lg mt-3"
+          onPress={() => navigation.navigate('Catalog')}
+        >
+          <Text className="text-white font-bold text-lg">Catalogue</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f4ff', padding: 24 },
-  title: { fontSize: 28, marginBottom: 32, fontWeight: 'bold' },
-  button: { backgroundColor: '#22c55e', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 8 },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-});

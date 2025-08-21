@@ -21,7 +21,7 @@ export default function RegisterScreen() {
     }
     setLoading(true);
     try {
-      await axios.post('http://localhost:8001/api/signup', {
+      await axios.post('http://10.81.147.85:8001/api/signup', {
         prenom,
         nom,
         email,

@@ -1,31 +1,94 @@
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getUserIdFromToken } from './auth';
+// import axios from 'axios';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { getUserIdFromToken } from './auth';
 
-const API_URL = 'http://localhost:8001/api';
+// const API_URL = 'http://localhost:8001/api';
+
+// export const cartService = {
+//   getCart: async () => {
+//     const token = await AsyncStorage.getItem('token');
+//     const response = await axios.get(`${API_URL}/cart`, {
+//       headers: { Authorization: `Bearer ${token}` }
+//     });
+//     return response.data;
+//   },
+
+//   applyPromo: async (promoCode) => {
+//     try {
+//       const token = await AsyncStorage.getItem('token');
+//       // Vérification en une seule requête
+//       const verificationResponse = await axios.get(`${API_URL}/offers/verify/${promoCode}`, {
+//         headers: { Authorization: `Bearer ${token}` }
+//       });
+
+//       if (!verificationResponse.data.valid) {
+//         throw new Error(verificationResponse.data.error);
+//       }
+
+//       const promotion = verificationResponse.data.promotion;
+
+//       return {
+//         montant_reduction: promotion.montant_reduction,
+//         id_promotion: promotion.id_promotion,
+//         message: 'Code promo appliqué avec succès',
+//       };
+//     } catch (error) {
+//       if (error.response) {
+//         switch (error.response.status) {
+//           case 404:
+//             throw new Error('Code promo invalide ou expiré');
+//           case 400:
+//             throw new Error(error.response.data.error);
+//           default:
+//             throw new Error(error.response.data.error || 'Erreur lors de la vérification du code promo');
+//         }
+//       }
+//       throw new Error('Erreur de connexion au serveur');
+//     }
+//   },
+
+//   checkout: async (orderData) => {
+//     const id_user = await getUserIdFromToken();
+//     if (!id_user) throw new Error('Utilisateur non authentifié');
+
+//     const orderWithUser = {
+//       ...orderData,
+//       id_user,
+//     };
+//     const token = await AsyncStorage.getItem('token');
+//     const response = await axios.post(`${API_URL}/order`, orderWithUser, {
+//       headers: { Authorization: `Bearer ${token}` },
+//     });
+//     return response.data;
+//   },
+// };
+
+// services/api.js
+import axiosInstance from './axiosInstance';
+import { getUserIdFromToken } from './auth';
+import { getToken } from './authStorage';
 
 export const cartService = {
   getCart: async () => {
-    const token = await AsyncStorage.getItem('token');
-    const response = await axios.get(`${API_URL}/cart`, {
-      headers: { Authorization: `Bearer ${token}` }
+    const token = await getToken();
+    const response = await axiosInstance.get('/cart', {
+      headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
   },
 
   applyPromo: async (promoCode) => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      // Vérification en une seule requête
-      const verificationResponse = await axios.get(`${API_URL}/offers/verify/${promoCode}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const token = await getToken();
+      const response = await axiosInstance.get(`/offers/verify/${promoCode}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!verificationResponse.data.valid) {
-        throw new Error(verificationResponse.data.error);
+      if (!response.data.valid) {
+        throw new Error(response.data.error);
       }
 
-      const promotion = verificationResponse.data.promotion;
+      const promotion = response.data.promotion;
 
       return {
         montant_reduction: promotion.montant_reduction,
@@ -34,13 +97,14 @@ export const cartService = {
       };
     } catch (error) {
       if (error.response) {
+        const msg = error.response.data?.error || 'Erreur inconnue';
         switch (error.response.status) {
           case 404:
             throw new Error('Code promo invalide ou expiré');
           case 400:
-            throw new Error(error.response.data.error);
+            throw new Error(msg);
           default:
-            throw new Error(error.response.data.error || 'Erreur lors de la vérification du code promo');
+            throw new Error(msg);
         }
       }
       throw new Error('Erreur de connexion au serveur');
@@ -51,14 +115,16 @@ export const cartService = {
     const id_user = await getUserIdFromToken();
     if (!id_user) throw new Error('Utilisateur non authentifié');
 
-    const orderWithUser = {
-      ...orderData,
-      id_user,
-    };
-    const token = await AsyncStorage.getItem('token');
-    const response = await axios.post(`${API_URL}/order`, orderWithUser, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const token = await getToken();
+
+    const response = await axiosInstance.post(
+      '/order',
+      { ...orderData, id_user },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
     return response.data;
   },
 };

@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import axios from 'axios';
+import axiosInstance from '../../services/axiosInstance';
+import { getToken } from '../../services/authStorage';
 
 const SuccessPage = () => {
   const [loading, setLoading] = useState(true);
@@ -17,27 +18,23 @@ const SuccessPage = () => {
       alreadyProcessed.current = true;
 
       try {
-        // Récupérer session_id depuis les params de navigation
         const sessionId = route.params?.session_id;
         if (!sessionId) {
           throw new Error('Session ID manquant');
         }
 
-        await axios.post(
-          'http://localhost:8001/api/order/process-success',
-          { sessionId },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem?.('token') || ''}`, // localStorage n'existe pas en RN, voir remarque
-            },
-          }
+        const token = await getToken();
+        if (!token) throw new Error('Token manquant');
+
+        await axiosInstance.post(
+          '/order/process-success',
+          { sessionId }
         );
 
         setLoading(false);
 
-        // Rediriger après 5 secondes
         setTimeout(() => {
-          navigation.navigate('Home'); // 'Home' est le nom de ta page d'accueil dans React Navigation
+          navigation.navigate('Accueil');
         }, 5000);
       } catch (err) {
         console.error('Erreur lors du traitement de la commande:', err);
@@ -51,72 +48,56 @@ const SuccessPage = () => {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#6366F1" />
-        <Text style={styles.title}>Traitement de votre commande...</Text>
-        <Text>Veuillez patienter pendant que nous finalisons votre commande.</Text>
-      </View>
+      
+        <View className="flex-1 justify-center items-center bg-white dark:bg-gray-900 px-5">
+          <ActivityIndicator size="large" color="#6366F1" />
+          <Text className="text-2xl font-bold text-indigo-500 dark:text-indigo-400 mt-4">
+            Traitement de votre commande...
+          </Text>
+          <Text className="text-center text-gray-700 dark:text-gray-300 mt-2">
+            Veuillez patienter pendant que nous finalisons votre commande.
+          </Text>
+        </View>
+      
     );
   }
 
   if (error) {
     return (
-      <View style={[styles.container, styles.errorContainer]}>
-        <Text style={styles.errorTitle}>Erreur</Text>
-        <Text style={styles.errorText}>{error}</Text>
-        <Text style={styles.errorText}>
-          <Text style={{ fontWeight: 'bold' }}>
-            votre paiement a bien été validé par notre prestataire mais n’a pas pu être enregistré dans notre système.
+      
+        <View className="flex-1 justify-center items-center bg-red-100 dark:bg-red-900 px-5">
+          <Text className="text-2xl font-bold text-red-700 dark:text-red-300 mb-3">
+            Erreur
           </Text>
-          {'\n'}
-          <Text style={{ fontWeight: 'bold' }}>
+          <Text className="text-base text-red-700 dark:text-red-200 text-center mb-2">
+            {error}
+          </Text>
+          <Text className="text-base text-red-700 dark:text-red-200 text-center font-semibold">
+            Votre paiement a bien été validé par notre prestataire mais n’a pas pu être enregistré dans notre système.
+            {"\n\n"}
             Un remboursement automatique sera effectué sous peu.
+            {"\n\n"}
+            Merci de vous reconnecter et de réessayer, ou contactez le support si besoin.
           </Text>
-          {'\n'}
-          Merci de vous reconnecter et de réessayer, ou contactez le support si besoin.
-        </Text>
-      </View>
+        </View>
+      
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Commande confirmée !</Text>
-      <Text>Merci pour votre achat.</Text>
-      <Text>Vous allez être redirigé vers la page d'accueil dans quelques secondes...</Text>
-    </View>
+    
+      <View className="flex-1 justify-center items-center bg-white dark:bg-gray-900 px-5">
+        <Text className="text-2xl font-bold text-indigo-500 dark:text-indigo-400 mb-2">
+          Commande confirmée !
+        </Text>
+        <Text className="text-center text-gray-700 dark:text-gray-300">
+          Merci pour votre achat.
+        </Text>
+        <Text className="text-center text-gray-700 dark:text-gray-300 mt-2">
+          Vous allez être redirigé vers la page d'accueil dans quelques secondes...
+        </Text>
+      </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorContainer: {
-    backgroundColor: '#fee2e2', // rouge clair
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#6366F1', // indigo-500
-  },
-  errorTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#b91c1c', // rouge foncé
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#b91c1c',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-});
 
 export default SuccessPage;

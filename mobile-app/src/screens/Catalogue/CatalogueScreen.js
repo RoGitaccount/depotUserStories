@@ -1,6 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  ScrollView,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axiosInstance from '../../services/axiosInstance';
+import ScreenWrapper from '../../components/PageComponent/screenWrapper';
+
+
+  // Convert Blob to base64
+  const blobToBase64 = (blob) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
 
 export default function CatalogueScreen() {
   const [products, setProducts] = useState([]);
@@ -16,40 +36,44 @@ export default function CatalogueScreen() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('http://localhost:8001/api/category');
-      const data = await res.json();
-      setCategories(data);
+      const res = await axiosInstance.get('/category');
+      setCategories(res.data);
     } catch (error) {
-      // Gérer l'erreur
+      console.error('Erreur récupération catégories :', error);
     }
   };
 
-  const fetchAllProducts = async () => {
+  const loadImagesBase64 = async (productsArray) => {
+  const productsWithBase64 = await Promise.all(
+    productsArray.map(async (prod) => {
+      if (prod.image_url || prod.image) {
+        try {
+          // Utilisez un endpoint dédié comme dans ProductDetailScreen
+          const res = await axiosInstance.get(`/products/${prod.id_produit}/image`, {
+            responseType: 'blob',
+          });
+          const base64 = await blobToBase64(res.data);
+          return { ...prod, image_url: base64 };
+        } catch (error) {
+          console.error('Erreur chargement image:', error);
+          return { ...prod, image_url: null };
+        }
+      }
+      return prod;
+    })
+  );
+  return productsWithBase64;
+};
+
+
+   const fetchAllProducts = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:8001/api/products');
-      const data = await res.json();
-
-      // Gestion des images blob
-      const productsWithImages = await Promise.all(
-        data.map(async (product) => {
-          if (product.image) {
-            try {
-              const blobRes = await fetch(`http://localhost:8001/api/products/${product.id_produit}/image`);
-              const blob = await blobRes.blob();
-              const imageUrl = URL.createObjectURL(blob);
-              return { ...product, image_url: imageUrl };
-            } catch {
-              return product;
-            }
-          }
-          return product;
-        })
-      );
-
-      setProducts(productsWithImages);
+      const res = await axiosInstance.get('/products');
+      const productsBase64 = await loadImagesBase64(res.data);
+      setProducts(productsBase64);
     } catch (error) {
-      // Gérer l'erreur
+      console.error('Erreur récupération produits :', error);
     } finally {
       setLoading(false);
     }
@@ -58,28 +82,11 @@ export default function CatalogueScreen() {
   const fetchProductsByCategory = async (categoryId) => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:8001/api/productCategory/categorie/${categoryId}`);
-      const data = await res.json();
-
-      const productsWithImages = await Promise.all(
-        data.map(async (product) => {
-          if (product.image) {
-            try {
-              const blobRes = await fetch(`http://localhost:8001/api/products/${product.id_produit}/image`);
-              const blob = await blobRes.blob();
-              const imageUrl = URL.createObjectURL(blob);
-              return { ...product, image_url: imageUrl };
-            } catch {
-              return product;
-            }
-          }
-          return product;
-        })
-      );
-
-      setProducts(productsWithImages);
+      const res = await axiosInstance.get(`/productCategory/categorie/${categoryId}`);
+      const productsBase64 = await loadImagesBase64(res.data);
+      setProducts(productsBase64);
     } catch (error) {
-      // Gérer l'erreur
+      console.error('Erreur récupération produits par catégorie :', error);
     } finally {
       setLoading(false);
     }
@@ -96,88 +103,106 @@ export default function CatalogueScreen() {
 
   const renderProduct = ({ item }) => (
     <TouchableOpacity
-      style={styles.productCard}
+      className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-4 shadow-md"
       onPress={() => navigation.navigate('ProductDetail', { id: item.id_produit })}
     >
       {item.image_url ? (
-        <Image source={{ uri: item.image_url }} style={styles.productImage} />
+        <Image
+          source={{ uri: item.image_url }}
+          className="w-full h-44 rounded-lg mb-3"
+          resizeMode="cover"
+        />
       ) : (
-        <View style={styles.productImagePlaceholder} />
+        <View className="w-full h-44 rounded-lg bg-gray-300 dark:bg-gray-700 mb-3" />
       )}
-      <Text style={styles.productTitle}>{item.titre}</Text>
-      <Text style={styles.productCategory}>
+      <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+        {item.titre}
+      </Text>
+      <Text className="text-sm text-indigo-500 mb-1">
         {categories.find((c) => c.id_categorie === item.id_categorie)?.nom_categorie}
       </Text>
-      <Text style={styles.productDescription}>{item.description}</Text>
-      <Text style={styles.productPrice}>{item.prix} €</Text>
+      <Text className="text-base text-gray-700 dark:text-gray-300 mb-1">
+        {item.description}
+      </Text>
+      <Text className="text-lg font-bold text-green-600 dark:text-green-400">
+        {item.prix} €
+      </Text>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.categoriesContainer}>
+    <ScreenWrapper scrollable={false}>
+    <View className="flex-1 bg-gray-100 dark:bg-gray-900 p-3">
+      <View className="flex-row mb-3 items-center">
         <TouchableOpacity
-          style={[
-            styles.categoryButton,
-            selectedCategoryId === null && styles.categoryButtonSelected,
-          ]}
+          className={`px-3 py-2 rounded-lg mr-3 ${
+            selectedCategoryId === null
+              ? 'bg-indigo-600'
+              : 'bg-indigo-200 dark:bg-indigo-700'
+          }`}
           onPress={() => handleCategoryClick(null)}
         >
-          <Text style={styles.categoryButtonText}>Toutes les catégories</Text>
+          <Text
+            className={`font-bold ${
+              selectedCategoryId === null
+                ? 'text-white'
+                : 'text-indigo-900 dark:text-indigo-200'
+            }`}
+          >
+            Toutes les catégories
+          </Text>
         </TouchableOpacity>
-        <FlatList
-          data={categories}
-          horizontal
-          keyExtractor={(item) => item.id_categorie.toString()}
-          renderItem={({ item }) => (
+        
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          className="flex-row"
+        >
+          {categories.map((item) => (
             <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                selectedCategoryId === item.id_categorie && styles.categoryButtonSelected,
-              ]}
+              key={item.id_categorie.toString()}
+              className={`px-3 py-2 rounded-lg mr-3 ${
+                selectedCategoryId === item.id_categorie
+                  ? 'bg-indigo-600'
+                  : 'bg-indigo-200 dark:bg-indigo-700'
+              }`}
               onPress={() => handleCategoryClick(item.id_categorie)}
             >
-              <Text style={styles.categoryButtonText}>{item.nom_categorie}</Text>
+              <Text
+                className={`font-bold ${
+                  selectedCategoryId === item.id_categorie
+                    ? 'text-white'
+                    : 'text-indigo-900 dark:text-indigo-200'
+                }`}
+              >
+                {item.nom_categorie}
+              </Text>
             </TouchableOpacity>
-          )}
-          showsHorizontalScrollIndicator={false}
-        />
+          ))}
+        </ScrollView>
       </View>
-      <Text style={styles.title}>
+
+      <Text className="text-center text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
         {selectedCategoryId
           ? `Catégorie : ${categories.find((c) => c.id_categorie === selectedCategoryId)?.nom_categorie}`
           : 'Tous les produits'}
       </Text>
+
       {loading ? (
-        <ActivityIndicator size="large" color="#6366f1" style={{ marginTop: 32 }} />
+        <ActivityIndicator size="large" color="#6366f1" className="mt-8" />
       ) : products.length === 0 ? (
-        <Text style={styles.emptyText}>Aucun produit trouvé.</Text>
+        <Text className="text-center text-lg text-gray-700 dark:text-gray-300 mt-8">
+          Aucun produit trouvé.
+        </Text>
       ) : (
         <FlatList
           data={products}
           keyExtractor={(item) => item.id_produit.toString()}
           renderItem={renderProduct}
-          contentContainerStyle={styles.productsList}
+          contentContainerStyle={{ paddingBottom: 16 }}
         />
       )}
     </View>
+    </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0f4ff', padding: 12 },
-  categoriesContainer: { flexDirection: 'row', marginBottom: 12, alignItems: 'center' },
-  categoryButton: { backgroundColor: '#e0e7ff', padding: 8, borderRadius: 8, marginRight: 8 },
-  categoryButtonSelected: { backgroundColor: '#6366f1' },
-  categoryButtonText: { color: '#222', fontWeight: 'bold' },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
-  emptyText: { textAlign: 'center', fontSize: 18, marginTop: 32 },
-  productsList: { paddingBottom: 16 },
-  productCard: { backgroundColor: '#fff', borderRadius: 10, padding: 12, marginBottom: 16, elevation: 2 },
-  productImage: { width: '100%', height: 180, borderRadius: 8, marginBottom: 8 },
-  productImagePlaceholder: { width: '100%', height: 180, borderRadius: 8, backgroundColor: '#e0e0e0', marginBottom: 8 },
-  productTitle: { fontSize: 16, fontWeight: 'bold' },
-  productCategory: { fontSize: 13, color: '#6366f1', marginBottom: 4 },
-  productDescription: { fontSize: 14, color: '#444', marginBottom: 4 },
-  productPrice: { fontSize: 16, fontWeight: 'bold', color: '#22c55e' },
-});

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mobile-app",
+    "name": "Projet mobile Cyna",
     "slug": "mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,11 +20,15 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.mobileapp"
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
+    },
+    "extra":{
+      "expo_ip_url":"10.90.101.85"
     }
   }
 }

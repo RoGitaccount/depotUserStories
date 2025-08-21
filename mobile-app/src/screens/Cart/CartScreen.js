@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, ActivityIndicator, Alert, ScrollView, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import { View, Text, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import CartList from '../../components/Cart/CartList'; // ajuster le chemin si besoin
-import CartSummary from '../../components/Cart/CartSummary'; // ajuster le chemin si besoin
+import axiosInstance from '../../services/axiosInstance';
+import CartList from '../../components/Cart/CartList';
+import CartSummary from '../../components/Cart/CartSummary';
+import ScreenWrapper from '../../components/PageComponent/screenWrapper';
 
-const CartScreen = () => {
+export default function CartScreen() {
   const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -20,27 +20,16 @@ const CartScreen = () => {
   const loadCart = async () => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        setError("Vous devez être connecté pour accéder à votre panier.");
-        setLoading(false);
-        return;
-      }
-
-      const res = await axios.get('http://localhost:8001/api/cart', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const res = await axiosInstance.get('/cart');
       const data = res.data;
 
       const itemsWithImages = await Promise.all(
         data.map(async (item) => {
           try {
-            const imageRes = await fetch(`http://localhost:8001/api/products/${item.id_produit}/image`, {
-              headers: { Authorization: `Bearer ${token}` },
+            const imageRes = await axiosInstance.get(`/products/${item.id_produit}/image`, {
+              responseType: 'blob',
             });
-            if (!imageRes.ok) throw new Error('Image non trouvée');
-            const blob = await imageRes.blob();
+            const blob = imageRes.data;
             const imageUrl = URL.createObjectURL(blob);
             return { ...item, image: imageUrl };
           } catch {
@@ -50,14 +39,13 @@ const CartScreen = () => {
       );
 
       setCartItems(itemsWithImages);
-      const cartTotal = data.reduce((sum, item) => sum + parseFloat(item.prix), 0);
-      setTotal(cartTotal);
+      setTotal(data.reduce((sum, item) => sum + parseFloat(item.prix), 0));
       setError(null);
     } catch (err) {
-      if (err.response && err.response.status === 401) {
+      if (err.response?.status === 401) {
         setError("Vous devez être connecté pour accéder à votre panier.");
       } else {
-        setError("Erreur lors du chargement du panier. Veuillez réessayer.");
+        setError("Erreur lors du chargement du panier.");
       }
     } finally {
       setLoading(false);
@@ -66,26 +54,18 @@ const CartScreen = () => {
 
   const handleRemove = async (id_produit) => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.delete(
-        `http://localhost:8001/api/cart/delete/${id_produit}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axiosInstance.delete(`/cart/delete/${id_produit}`);
       loadCart();
-    } catch (err) {
+    } catch {
       Alert.alert("Erreur", "Erreur lors de la suppression du produit.");
     }
   };
 
   const handleClearCart = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.delete(
-        'http://localhost:8001/api/cart/clear',
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axiosInstance.delete('/cart/clear');
       loadCart();
-    } catch (err) {
+    } catch {
       Alert.alert("Erreur", "Erreur lors du vidage du panier.");
     }
   };
@@ -93,69 +73,72 @@ const CartScreen = () => {
   const handleCheckout = () => {
     navigation.navigate('Checkout', {
       cartTotal: total,
-      cartItems: cartItems,
+      cartItems,
     });
   };
 
-  if (error === "Vous devez être connecté pour accéder à votre panier.") {
-    return (
-      <View className="flex-1 justify-center items-center bg-white px-6">
-        <Text className="text-red-600 text-lg mb-4">{error}</Text>
-        <Button title="Se connecter" onPress={() => navigation.navigate('Login')} />
-      </View>
-    );
-  }
-
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-white">
-        <ActivityIndicator size="large" color="#2563eb" />
-        <Text className="mt-4 text-gray-700">Chargement du panier...</Text>
-      </View>
+      <ScreenWrapper>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#2563eb" />
+          <Text style={{ marginTop: 16 }}>Chargement du panier...</Text>
+        </View>
+      </ScreenWrapper>
     );
   }
 
   if (error) {
     return (
-      <View className="flex-1 justify-center items-center bg-white">
-        <Text className="text-red-600">{error}</Text>
-      </View>
+      <ScreenWrapper>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: 'red', fontSize: 16, marginBottom: 12 }}>{error}</Text>
+          {error.includes("connecté") && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Login')}
+              style={{ backgroundColor: '#2563eb', padding: 10, borderRadius: 6 }}
+            >
+              <Text style={{ color: '#fff' }}>Se connecter</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </ScreenWrapper>
     );
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-100 px-4 py-6">
-      <Text className="text-2xl font-bold text-center mb-6">Votre Panier</Text>
+    <ScreenWrapper scroll>
+      <Text style={{ fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 24 }}>
+        Votre Panier
+      </Text>
 
       {cartItems.length === 0 ? (
-        <Text className="text-center text-lg">Votre panier est vide</Text>
+        <Text style={{ textAlign: 'center', fontSize: 16 }}>Votre panier est vide</Text>
       ) : (
         <>
           <CartList items={cartItems} onRemove={handleRemove} />
 
-          <View className="mt-6">
+          <View style={{ marginTop: 24 }}>
             <CartSummary total={total} />
 
-            <View className="mt-6 space-y-4">
+            <View style={{ marginTop: 24 }}>
               <TouchableOpacity
-                className="bg-green-600 py-3 rounded"
+                style={{ backgroundColor: '#16a34a', padding: 14, borderRadius: 8, marginBottom: 12 }}
                 onPress={handleCheckout}
               >
-                <Text className="text-white text-center text-lg">Procéder au paiement</Text>
+                <Text style={{ color: '#fff', textAlign: 'center', fontSize: 16 }}>Procéder au paiement</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="bg-red-600 py-3 rounded"
+                style={{ backgroundColor: '#dc2626', padding: 14, borderRadius: 8 }}
                 onPress={handleClearCart}
               >
-                <Text className="text-white text-center text-lg">Vider le panier</Text>
+                <Text style={{ color: '#fff', textAlign: 'center', fontSize: 16 }}>Vider le panier</Text>
               </TouchableOpacity>
             </View>
           </View>
         </>
       )}
-    </ScrollView>
+    </ScreenWrapper>
   );
-};
-
-export default CartScreen;
+}

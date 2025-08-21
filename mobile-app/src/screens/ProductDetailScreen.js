@@ -8,13 +8,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  StyleSheet,
-  Picker,
 } from "react-native";
-import axios from "axios";
+import { Picker } from "@react-native-picker/picker"; // ✅ Import corrigé
+import axiosInstance from "../services/axiosInstance";
 import { AuthContext } from "../contexts/AuthContext";
 import { useRoute } from "@react-navigation/native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import ScreenWrapper from "../components/PageComponent/screenWrapper";
 
 const ProductDetailScreen = () => {
   const route = useRoute();
@@ -38,25 +37,32 @@ const ProductDetailScreen = () => {
     fetchAvis();
   }, [id]);
 
+  // Convert Blob to base64
+  const blobToBase64 = (blob) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
   const fetchProduit = async () => {
     try {
-      const res = await fetch(`http://localhost:8001/api/products/${id}`);
-      const data = await res.json();
+      const { data } = await axiosInstance.get(`/products/${id}`);
 
       if (data.image) {
-        const imageRes = await fetch(`http://localhost:8001/api/products/${id}/image`);
-        const blob = await imageRes.blob();
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          data.imageObjectUrl = reader.result;
-          setProduit(data);
-        };
-        reader.readAsDataURL(blob);
-      } else {
-        setProduit(data);
+        // récupérer l'image en blob, puis en base64 pour React Native
+        const imageRes = await axiosInstance.get(`/products/${id}/image`, {
+          responseType: "blob",
+        });
+        const base64 = await blobToBase64(imageRes.data);
+        data.imageObjectUrl = base64;
       }
+
+      setProduit(data);
     } catch (error) {
       console.error("Erreur récupération produit :", error);
+      Alert.alert("Erreur", "Impossible de récupérer le produit.");
     } finally {
       setLoading(false);
     }
@@ -64,7 +70,7 @@ const ProductDetailScreen = () => {
 
   const fetchAvis = async () => {
     try {
-      const res = await axios.get(`http://localhost:8001/api/reviews/${id}`);
+      const res = await axiosInstance.get(`/reviews/${id}`);
       setAvis(res.data);
     } catch (error) {
       console.error("Erreur récupération avis :", error);
@@ -72,32 +78,30 @@ const ProductDetailScreen = () => {
   };
 
   const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      Alert.alert("Erreur", "Vous devez être connecté pour ajouter au panier.");
+      return;
+    }
     try {
-      const token = await AsyncStorage.getItem("token");
-      await axios.post(
-        `http://localhost:8001/api/wishlist/add_to_cart/${produit.id_produit}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axiosInstance.post(`/wishlist/add_to_cart/${produit.id_produit}`, {});
       Alert.alert("Succès", "Produit ajouté au panier !");
     } catch (error) {
       console.error(error);
-      Alert.alert("Erreur", "Ajout au panier échoué.");
+      Alert.alert("Erreur", error.response?.data?.message || "Ajout au panier échoué.");
     }
   };
 
   const handleAddToWishlist = async () => {
+    if (!isAuthenticated) {
+      Alert.alert("Erreur", "Vous devez être connecté pour ajouter à la wishlist.");
+      return;
+    }
     try {
-      const token = await AsyncStorage.getItem("token");
-      await axios.post(
-        `http://localhost:8001/api/wishlist/add/${produit.id_produit}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axiosInstance.post(`/wishlist/add/${produit.id_produit}`, {});
       Alert.alert("Succès", "Produit ajouté à la wishlist !");
     } catch (error) {
       console.error(error);
-      Alert.alert("Erreur", "Ajout à la wishlist échoué.");
+      Alert.alert("Erreur", error.response?.data?.message || "Ajout à la wishlist échoué.");
     }
   };
 
@@ -106,17 +110,16 @@ const ProductDetailScreen = () => {
       Alert.alert("Erreur", "Vous devez être connecté pour laisser un avis.");
       return;
     }
+    if (!commentaire.trim()) {
+      Alert.alert("Erreur", "Veuillez saisir un commentaire.");
+      return;
+    }
     try {
-      const token = await AsyncStorage.getItem("token");
-      await axios.post(
-        "http://localhost:8001/api/reviews/add-review",
-        {
-          id_produit: produit.id_produit,
-          note,
-          commentaire,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axiosInstance.post("/reviews/add-review", {
+        id_produit: produit.id_produit,
+        note,
+        commentaire,
+      });
       setCommentaire("");
       setNote(5);
       fetchAvis();
@@ -133,12 +136,9 @@ const ProductDetailScreen = () => {
         text: "Supprimer",
         onPress: async () => {
           try {
-            const token = await AsyncStorage.getItem("token");
-            await axios.delete(
-              `http://localhost:8001/api/reviews/delete-review/${id_avis}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await axiosInstance.delete(`/reviews/delete-review/${id_avis}`);
             fetchAvis();
+            Alert.alert("Succès", "Avis supprimé !");
           } catch (error) {
             Alert.alert("Erreur", error.response?.data?.message || "Suppression échouée.");
           }
@@ -148,164 +148,361 @@ const ProductDetailScreen = () => {
   };
 
   const handleEditReview = async () => {
+    if (!editCommentaire.trim()) {
+      Alert.alert("Erreur", "Veuillez saisir un commentaire.");
+      return;
+    }
     try {
-      const token = await AsyncStorage.getItem("token");
-      await axios.put(
-        `http://localhost:8001/api/reviews/update-review/${editId}`,
-        { note: editNote, commentaire: editCommentaire },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axiosInstance.put(`/reviews/update-review/${editId}`, {
+        note: editNote,
+        commentaire: editCommentaire,
+      });
       setEditId(null);
       fetchAvis();
+      Alert.alert("Succès", "Avis modifié !");
     } catch (error) {
       Alert.alert("Erreur", error.response?.data?.message || "Modification échouée.");
     }
   };
 
   const canEditOrDelete = (avisItem) =>
-    user && (user.id === avisItem.id_user || user.role === "admin");
+    user && (user.id === avisItem.id_user || user.id_user === avisItem.id_user || user.role === "admin");
 
-  if (loading) return <ActivityIndicator size="large" style={{ marginTop: 50 }} />;
-  if (!produit) return <Text>Produit non trouvé</Text>;
+  if (loading) {
+    return (
+      <ScreenWrapper>
+        <View className="flex-1 justify-center items-center bg-gray-50 dark:bg-gray-900">
+          <ActivityIndicator size="large" color="#6366f1" />
+          <Text className="text-gray-600 dark:text-gray-400 mt-4">
+            Chargement du produit...
+          </Text>
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
+  if (!produit) {
+    return (
+      <ScreenWrapper>
+        <View className="flex-1 justify-center items-center bg-gray-50 dark:bg-gray-900">
+          <Text className="text-lg text-gray-700 dark:text-gray-300">
+            Produit non trouvé
+          </Text>
+        </View>
+      </ScreenWrapper>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>{produit.titre}</Text>
-      {produit.imageObjectUrl && (
-        <Image source={{ uri: produit.imageObjectUrl }} style={styles.image} />
-      )}
-      <Text style={styles.description}>{produit.description}</Text>
-      <Text style={styles.price}>{produit.prix} €</Text>
-
-      <TouchableOpacity onPress={handleAddToCart} style={styles.buttonBlue}>
-        <Text style={styles.buttonText}>Ajouter au panier</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={handleAddToWishlist} style={styles.buttonPink}>
-        <Text style={styles.buttonText}>Ajouter à la wishlist</Text>
-      </TouchableOpacity>
-
-      {isAuthenticated ? (
-        <>
-          <Text style={styles.sectionTitle}>Laisser un avis</Text>
-          <Picker selectedValue={note} onValueChange={(value) => setNote(value)}>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <Picker.Item key={n} label={`${n} étoile${n > 1 ? "s" : ""}`} value={n} />
-            ))}
-          </Picker>
-          <TextInput
-            placeholder="Votre commentaire"
-            value={commentaire}
-            onChangeText={setCommentaire}
-            style={styles.input}
-            multiline
-          />
-          <TouchableOpacity onPress={handleSubmitReview} style={styles.buttonGreen}>
-            <Text style={styles.buttonText}>Envoyer l’avis</Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <Text style={styles.note}>Connectez-vous pour laisser un avis.</Text>
-      )}
-
-      <Text style={styles.sectionTitle}>Avis des clients</Text>
-      {avis.map((a) => (
-        <View key={a.id_avis} style={styles.reviewCard}>
-          <Text style={styles.reviewTitle}>
-            {a.prenom || "Utilisateur"} - {a.note} / 5
+    <ScreenWrapper>
+      <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-900">
+        <View className="p-5">
+          {/* Titre du produit */}
+          <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+            {produit.titre}
           </Text>
-          {editId === a.id_avis ? (
-            <>
-              <Picker selectedValue={editNote} onValueChange={(value) => setEditNote(value)}>
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <Picker.Item key={n} label={`${n} étoile${n > 1 ? "s" : ""}`} value={n} />
-                ))}
-              </Picker>
+          
+          {/* Image du produit */}
+          {produit.imageObjectUrl && (
+            <Image 
+              source={{ uri: produit.imageObjectUrl }} 
+              className="w-full h-52 mb-4 rounded-lg"
+              resizeMode="cover"
+            />
+          )}
+          
+          {/* Description */}
+          <Text className="text-base text-gray-700 dark:text-gray-300 mb-4 leading-6">
+            {produit.description}
+          </Text>
+          
+          {/* Prix */}
+          <Text className="text-xl font-bold text-green-600 dark:text-green-400 mb-6">
+            {produit.prix} €
+          </Text>
+
+          {/* Boutons d'action */}
+          <TouchableOpacity 
+            onPress={handleAddToCart} 
+            className="bg-blue-600 dark:bg-blue-500 py-3 px-4 mb-3 rounded-lg"
+          >
+            <Text className="text-white text-center font-bold text-base">
+              Ajouter au panier
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            onPress={handleAddToWishlist} 
+            className="bg-pink-600 dark:bg-pink-500 py-3 px-4 mb-6 rounded-lg"
+          >
+            <Text className="text-white text-center font-bold text-base">
+              Ajouter à la wishlist
+            </Text>
+          </TouchableOpacity>
+
+          {/* Section d'ajout d'avis */}
+          {isAuthenticated ? (
+            <View className="mb-6">
+              <Text className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-5 mb-3">
+                Laisser un avis
+              </Text>
+              
+              {/* ✅ Picker corrigé avec styling amélioré */}
+              <View className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mb-3">
+                <Picker 
+                  selectedValue={note} 
+                  onValueChange={(value) => setNote(value)}
+                  style={{
+                    color: '#374151', // Couleur pour le mode clair
+                    backgroundColor: 'transparent',
+                  }}
+                  dropdownIconColor="#6b7280"
+                >
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Picker.Item 
+                      key={n} 
+                      label={`${n} étoile${n > 1 ? "s" : ""}`} 
+                      value={n}
+                      color="#374151"
+                    />
+                  ))}
+                </Picker>
+              </View>
+              
               <TextInput
-                value={editCommentaire}
-                onChangeText={setEditCommentaire}
-                style={styles.input}
+                placeholder="Votre commentaire"
+                placeholderTextColor="#9ca3af"
+                value={commentaire}
+                onChangeText={setCommentaire}
+                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-3 mb-3 rounded-lg min-h-20"
                 multiline
+                textAlignVertical="top"
               />
-              <TouchableOpacity onPress={handleEditReview} style={styles.buttonGreen}>
-                <Text style={styles.buttonText}>Modifier</Text>
+              
+              <TouchableOpacity 
+                onPress={handleSubmitReview} 
+                className="bg-green-600 dark:bg-green-500 py-3 px-4 mb-3 rounded-lg"
+              >
+                <Text className="text-white text-center font-bold text-base">
+                  Envoyer l'avis
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setEditId(null)} style={styles.buttonPink}>
-                <Text style={styles.buttonText}>Annuler</Text>
-              </TouchableOpacity>
-            </>
+            </View>
           ) : (
-            <>
-              <Text>{a.commentaire}</Text>
-              {canEditOrDelete(a) && (
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity onPress={() => {
-                    setEditId(a.id_avis);
-                    setEditNote(a.note);
-                    setEditCommentaire(a.commentaire);
-                  }}>
-                    <Text style={styles.link}>Modifier</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDeleteReview(a.id_avis)}>
-                    <Text style={styles.linkRed}>Supprimer</Text>
-                  </TouchableOpacity>
+            <Text className="italic text-gray-600 dark:text-gray-400 mb-6 text-center">
+              Connectez-vous pour laisser un avis.
+            </Text>
+          )}
+
+          {/* Section des avis */}
+          <Text className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-5 mb-4">
+            Avis des clients ({avis.length})
+          </Text>
+          
+          {avis.map((a) => (
+            <View 
+              key={a.id_avis} 
+              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 shadow-sm"
+            >
+              <Text className="font-bold text-gray-900 dark:text-gray-100 mb-2">
+                {a.prenom || "Utilisateur"} - {a.note}/5 ⭐
+              </Text>
+              
+              {editId === a.id_avis ? (
+                <View>
+                  {/* ✅ Picker d'édition corrigé */}
+                  <View className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg mb-3">
+                    <Picker 
+                      selectedValue={editNote} 
+                      onValueChange={(value) => setEditNote(value)}
+                      style={{
+                        color: '#374151',
+                        backgroundColor: 'transparent',
+                      }}
+                      dropdownIconColor="#6b7280"
+                    >
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Picker.Item 
+                          key={n} 
+                          label={`${n} étoile${n > 1 ? "s" : ""}`} 
+                          value={n}
+                          color="#374151"
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                  
+                  <TextInput
+                    value={editCommentaire}
+                    onChangeText={setEditCommentaire}
+                    className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-3 mb-3 rounded-lg min-h-20"
+                    multiline
+                    textAlignVertical="top"
+                  />
+                  
+                  <View className="flex-row space-x-3">
+                    <TouchableOpacity 
+                      onPress={handleEditReview} 
+                      className="bg-green-600 dark:bg-green-500 py-2 px-4 rounded-lg flex-1"
+                    >
+                      <Text className="text-white text-center font-bold">
+                        Modifier
+                      </Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      onPress={() => setEditId(null)} 
+                      className="bg-gray-600 dark:bg-gray-500 py-2 px-4 rounded-lg flex-1"
+                    >
+                      <Text className="text-white text-center font-bold">
+                        Annuler
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View>
+                  <Text className="text-gray-700 dark:text-gray-300 mb-3 leading-5">
+                    {a.commentaire}
+                  </Text>
+                  
+                  {canEditOrDelete(a) && (
+                    <View className="flex-row space-x-5 mt-2">
+                      <TouchableOpacity
+                        onPress={() => {
+                          setEditId(a.id_avis);
+                          setEditNote(a.note);
+                          setEditCommentaire(a.commentaire);
+                        }}
+                      >
+                        <Text className="text-blue-600 dark:text-blue-400 font-medium">
+                          Modifier
+                        </Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity onPress={() => handleDeleteReview(a.id_avis)}>
+                        <Text className="text-red-600 dark:text-red-400 font-medium">
+                          Supprimer
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               )}
-            </>
+            </View>
+          ))}
+          
+          {avis.length === 0 && (
+            <Text className="text-center text-gray-500 dark:text-gray-400 italic py-8">
+              Aucun avis pour ce produit
+            </Text>
           )}
         </View>
-      ))}
-    </ScrollView>
+      </ScrollView>
+    </ScreenWrapper>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { padding: 20 },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
-  image: { width: "100%", height: 200, marginBottom: 10, borderRadius: 10 },
-  description: { fontSize: 16, marginBottom: 10 },
-  price: { fontSize: 20, color: "green", marginBottom: 10 },
-  buttonBlue: {
-    backgroundColor: "#2563eb",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-  },
-  buttonPink: {
-    backgroundColor: "#db2777",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-  },
-  buttonGreen: {
-    backgroundColor: "#16a34a",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-  },
-  buttonText: { color: "white", textAlign: "center", fontWeight: "bold" },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-    textAlignVertical: "top",
-  },
-  note: { fontStyle: "italic", marginBottom: 10 },
-  sectionTitle: { fontSize: 20, fontWeight: "bold", marginTop: 20, marginBottom: 10 },
-  reviewCard: {
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#eee",
-    borderRadius: 5,
-    marginBottom: 10,
-    backgroundColor: "#f9f9f9",
-  },
-  reviewTitle: { fontWeight: "bold", marginBottom: 5 },
-  buttonRow: { flexDirection: "row", gap: 20, marginTop: 5 },
-  link: { color: "#3b82f6", marginRight: 10 },
-  linkRed: { color: "#dc2626" },
-});
-
 export default ProductDetailScreen;
+
+
+
+
+
+
+
+// import React, { useEffect, useState, useContext } from "react";
+// import {
+//   View,
+//   Text,
+//   Image,
+//   ScrollView,
+//   TextInput,
+//   TouchableOpacity,
+//   ActivityIndicator,
+//   Alert,
+// } from "react-native";
+// import { Picker } from '@react-native-picker/picker';
+// import { useLocalSearchParams, Link } from "expo-router";
+// import { AuthContext } from "../contexts/AuthContext";
+// import axiosInstance from "../services/axiosInstance";
+// import Toast from "react-native-toast-message";
+
+// const ProductDetailScreen = () => {
+//   const { id } = useLocalSearchParams();
+//   const [produit, setProduit] = useState(null);
+//   const [loading, setLoading] = useState(true);
+
+//   const [suggestions, setSuggestions] = useState([]);
+
+
+//   const { user, isAuthenticated } = useContext(AuthContext);
+
+//   useEffect(() => {
+//     fetchProduit();
+//     fetchAvis();
+//     fetchSuggestions();
+//   }, [id]);
+
+//   // Suggestions
+//   const fetchSuggestions = async () => {
+//     try {
+//       const res = await axiosInstance.get(`/products/${id}/suggestions`);
+//       const data = res.data;
+
+//       const suggestionsWithImages = data.map((prod) => ({
+//         ...prod,
+//         imageUri: prod.image
+//           ? `${axiosInstance.defaults.baseURL}/products/${prod.id_produit}/image`
+//           : null,
+//       }));
+
+//       setSuggestions(suggestionsWithImages);
+//     } catch (error) {
+//       console.error("Erreur récupération suggestions :", error);
+//     }
+//   };
+
+//         {/* Produits similaires */}
+//         {suggestions.length > 0 && (
+//           <View className="mb-12">
+//             <Text className="text-2xl font-bold mb-4 text-black dark:text-white">Produits similaires</Text>
+//             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+//               {suggestions.map((prod) => (
+//                 <View
+//                   key={prod.id_produit}
+//                   className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mr-4"
+//                   style={{ width: 250 }}
+//                 >
+//                   {prod.imageUri && (
+//                     <Image
+//                       source={{ uri: prod.imageUri }}
+//                       className="w-full h-40 rounded mb-3"
+//                       resizeMode="cover"
+//                     />
+//                   )}
+//                   <Text className="text-lg font-semibold text-black dark:text-white mb-1" numberOfLines={2}>
+//                     {prod.titre}
+//                   </Text>
+//                   <Text className="text-sm text-gray-600 dark:text-gray-300 mb-1" numberOfLines={2}>
+//                     {prod.description}
+//                   </Text>
+//                   <Text className="font-bold text-green-600 dark:text-green-400 mb-2">
+//                     {prod.prix} €
+//                   </Text>
+//                   <Link href={`/produit/${prod.id_produit}`} asChild>
+//                     <TouchableOpacity className="bg-blue-600 px-3 py-2 rounded">
+//                       <Text className="text-white text-center text-sm">Voir le produit</Text>
+//                     </TouchableOpacity>
+//                   </Link>
+//                 </View>
+//               ))}
+//             </ScrollView>
+//           </View>
+//         )}
+//       </View>
+//     </ScrollView>
+//   );
+// };
+
+// export default ProductDetailScreen;
