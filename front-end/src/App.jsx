@@ -25,6 +25,7 @@ import Wishlist from './pages/Wishlist/WishlistPage';
 import CataloguePage from './pages/Catalogue/CataloguePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ContactPage from './pages/Contact/ContactPage';
+import PrivacyPolicy from './pages/Authentication/confidentialite';
 
 // Pages supplémentaires
 import MyDataPage from './pages/Dashboard/MyData';
@@ -63,6 +64,7 @@ function AppContent() {
         <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
         <Route path="/MyData" element={<MyDataPage />} />
         <Route path="/Contact" element={<ContactPage />} />
+        <Route path="/confidentialite" element={<PrivacyPolicy />} />
 
         <Route path="/admin" element={
           <AdminRoute>

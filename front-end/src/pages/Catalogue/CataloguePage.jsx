@@ -146,7 +146,9 @@ const CataloguePage = () => {
                 }`}
                 onClick={() => handleCategoryClick(cat.id_categorie)}
               >
-                {cat.nom_categorie}
+                 {cat.nom_categorie.length > 24
+            ? cat.nom_categorie.slice(0, 24) + "…"
+            : cat.nom_categorie}
               </button>
             </li>
           ))}

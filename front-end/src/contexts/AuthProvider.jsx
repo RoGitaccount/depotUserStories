@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
   // Fonction utilitaire pour vérifier si on est sur une page d'authentification
   const isAuthPage = () => {
-    const authPages = ['/login', '/register', '/verify-code', '/forgot-password', '/resetpassword'];
+    const authPages = ['/login', '/register', '/verify-code', '/forgot-password', '/resetpassword', '/confidentialite'];
     return authPages.includes(window.location.pathname);
   };
 
