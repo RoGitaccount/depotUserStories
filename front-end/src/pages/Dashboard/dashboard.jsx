@@ -237,7 +237,7 @@ useEffect(() => {
 
               <br />
               <a
-                href="http://localhost:5173/Contact"
+                href="/Contact"
                 className="text-blue-600 hover:text-blue-800 underline font-medium transition"
               >
                 Nous contacter

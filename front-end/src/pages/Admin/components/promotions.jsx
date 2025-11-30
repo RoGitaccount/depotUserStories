@@ -16,17 +16,6 @@ const PromotionList = () => {
   const itemsPerPage = 10;
   const [filterActiveOnly, setFilterActiveOnly] = useState(false);
 
-  // Récupérer toutes les promotions admin
-  // useEffect(() => {
-  //   // const token = localStorage.getItem("token");
-  //   axios.get("http://localhost:8001/api/offers", {
-  //       // headers: { Authorization: `Bearer ${token}` },
-  //        withCredentials: true
-  //     })
-  //     .then((res) => setPromotions(res.data))
-  //     .catch((err) => console.error("Erreur récupération promos :", err.response?.data || err.message));
-  // }, []);
-
   useEffect(() => {
   axiosInstance
     .get("/offers")
@@ -44,68 +33,25 @@ const PromotionList = () => {
     });
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   // const token = localStorage.getItem("token");
-
-  //   // Prépare les données à envoyer en forçant le type des champs
-  //   const dataToSend = {
-  //       ...form,
-  //       montant_reduction: Number(form.montant_reduction), // force number
-  //       est_actif: form.est_actif, // assure un booléen
-  //   };
-
-  //   console.log(form.est_actif);
-
-  //   const method = editingId ? "put" : "post";
-  //   const url = editingId
-  //     ? `http://localhost:8001/api/offers/update/${editingId}`
-  //     : "http://localhost:8001/api/offers/add";
-
-  //   axios({
-  //     method,
-  //     url,
-  //     data: dataToSend,
-  //     // headers: { Authorization: `Bearer ${token}` },
-  //   })
-  //     .then(() => {
-  //       return axios.get("http://localhost:8001/api/offers", {
-  //         // headers: { Authorization: `Bearer ${token}` },
-  //         withCredentials: true
-  //       });
-  //     })
-  //     .then((res) => {
-  //       setPromotions(res.data);
-  //       setForm({
-  //         code: "",
-  //         montant_reduction: "",
-  //         date_expiration: "",
-  //         est_actif: 0,
-  //       });
-  //       setEditingId(null);
-  //     })
-  //     .catch((err) => console.error("Erreur lors de la soumission :", err));
-  // };
-
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const dataToSend = {
-    ...form,
-    montant_reduction: Number(form.montant_reduction),
-    est_actif: form.est_actif,
-  };
+    const dataToSend = {
+      ...form,
+      montant_reduction: Number(form.montant_reduction),
+      est_actif: form.est_actif,
+    };
 
-  const method = editingId ? "put" : "post";
-  const url = editingId
-    ? `/offers/update/${editingId}`
-    : "/offers/add";
+    const method = editingId ? "put" : "post";
+    const url = editingId
+      ? `/offers/update/${editingId}`
+      : "/offers/add";
 
-  axiosInstance({
-    method,
-    url,
-    data: dataToSend,
-  })
+    axiosInstance({
+      method,
+      url,
+      data: dataToSend,
+    })
     .then(() => axiosInstance.get("/offers"))
     .then((res) => {
       setPromotions(res.data);
@@ -118,37 +64,18 @@ const PromotionList = () => {
       setEditingId(null);
     })
     .catch((err) => console.error("Erreur lors de la soumission :", err));
-};
-
-
-
-
-  // const handleDelete = (id) => {
-  //   if (window.confirm("Supprimer cette promotion ?")) {
-  //     // const token = localStorage.getItem("token");
-  //     axios
-  //       .delete(`http://localhost:8001/api/offers/delete/${id}`, {
-  //         // headers: { Authorization: `Bearer ${token}` },
-  //          withCredentials: true
-  //       })
-  //       .then(() => {
-  //         setPromotions(promotions.filter((promo) => promo.id_promotion !== id));
-  //       })
-  //       .catch((err) => console.error("Erreur lors de la suppression :", err));
-  //   }
-  // };
+  };
 
   const handleDelete = (id) => {
-  if (window.confirm("Supprimer cette promotion ?")) {
-    axiosInstance
-      .delete(`/offers/delete/${id}`)
-      .then(() => {
-        setPromotions(promotions.filter((promo) => promo.id_promotion !== id));
-      })
-      .catch((err) => console.error("Erreur lors de la suppression :", err));
-  }
-};
-
+    if (window.confirm("Supprimer cette promotion ?")) {
+      axiosInstance
+        .delete(`/offers/delete/${id}`)
+        .then(() => {
+          setPromotions(promotions.filter((promo) => promo.id_promotion !== id));
+        })
+        .catch((err) => console.error("Erreur lors de la suppression :", err));
+    }
+  };
 
   const handleEdit = (promo) => {
     setForm({
@@ -160,7 +87,7 @@ const PromotionList = () => {
     setEditingId(promo.id_promotion);
   };
 
-  // Filtrer et trier par code promo (tu peux ajuster le filtre sur d'autres champs)
+  // Filtrer et trier par code promo
   const filteredPromotions = promotions
     .filter((promo) =>
       promo.code.toLowerCase().includes(searchTerm.toLowerCase())

@@ -25,22 +25,16 @@ const CartPage = () => {
     try {
       // 1. Récupérer la liste des produits du panier (sans images blob)
       const res = await axiosInstance.get('/cart');
-
       const data = res.data;
 
       // 2. Pour chaque produit, récupérer l'image en blob et créer URL
       const itemsWithImages = await Promise.all(
         data.map(async (item) => {
           try {
-            const imageRes = await fetch(`http://localhost:8001/api/products/${item.id_produit}/image`, {
-              // headers: {
-              //   Authorization: `Bearer ${token}`, // si ton API image demande auth
-              // },
-               credentials: 'include',
+            const imageRes = await axiosInstance(`/products/${item.id_produit}/image`, {
+              responseType: "blob",
             });
-            if (!imageRes.ok) throw new Error('Image non trouvée');
-            const blob = await imageRes.blob();
-            const imageUrl = URL.createObjectURL(blob);
+            const imageUrl = URL.createObjectURL(imageRes.data);
             objectUrls.push(imageUrl);
             return { ...item, image: imageUrl };
           } catch {

@@ -4,3 +4,4 @@ back-office/
 audit.sh
 cookies.txt
 .expo/
+docker/db

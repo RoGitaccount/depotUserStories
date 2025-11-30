@@ -61,13 +61,13 @@ export default function Footer() {
           <div className="text-center md:text-left space-y-3">
             <h3 className="text-white font-semibold text-lg mb-3">Navigation</h3>
             <nav className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2">
-              <a href="http://localhost:5173" className="text-gray-300 hover:text-pink-400 transition-colors duration-200">
+              <a href={`${import.meta.env.VITE_FRONT_URL}`} className="text-gray-300 hover:text-pink-400 transition-colors duration-200">
                 Accueil
               </a>
               <a href="#" className="text-gray-300 hover:text-pink-400 transition-colors duration-200">
                 Boutique
               </a>
-              <a href="http://localhost:5173/Contact" className="text-gray-300 hover:text-pink-400 transition-colors duration-200">
+              <a href={`${import.meta.env.VITE_FRONT_URL}/Contact`} className="text-gray-300 hover:text-pink-400 transition-colors duration-200">
                 Contact
               </a>
               <a href="#" className="text-gray-300 hover:text-pink-400 transition-colors duration-200">

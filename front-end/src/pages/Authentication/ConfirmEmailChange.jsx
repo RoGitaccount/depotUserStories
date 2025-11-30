@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../../services/axiosInstance";
 import { toast } from "react-toastify";
 
 const ConfirmEmailChange = () => {
@@ -12,23 +12,30 @@ const ConfirmEmailChange = () => {
   const token = searchParams.get("token");
 
   useEffect(() => {
-    if (token) {
-      axios
-        .post("http://localhost:8001/api/rgpd/confirm-email-change", { token })
-        .then((res) => {
-          toast.success(res.data.message || "Email confirmé.");
-          localStorage.removeItem("token");
-          navigate("/login");
-        })
-        .catch((err) => {
-          toast.error(err.response?.data?.message || "Lien invalide ou expiré.");
-          navigate("/");
-        })
-        .finally(() => setLoading(false));
-    } else {
-      toast.error("Lien invalide.");
-      navigate("/");
-    }
+    const confirmEmail = async () => {
+      if (!token) {
+        toast.error("Lien invalide.");
+        navigate("/");
+        return;
+      }
+
+      try {
+        const res = await axiosInstance.post("/rgpd/confirm-email-change", { token });
+        toast.info("Votre email a été modifié. Veuillez vous reconnecter.");
+        
+        // Déconnexion propre
+        await axiosInstance.post("/token/logout");
+        
+        navigate("/login");
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Lien invalide ou expiré.");
+        navigate("/");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    confirmEmail();
   }, [token, navigate]);
 
   return (
@@ -39,4 +46,3 @@ const ConfirmEmailChange = () => {
 };
 
 export default ConfirmEmailChange;
-

@@ -35,27 +35,42 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:8081',
-  'http://127.0.0.1:8081'
+  'http://127.0.0.1:8081',
+  'http://dsp-frontend:80',       // pour Docker (nom du service frontend)
+  'http://dsp-frontend',          // variante selon le navigateur
 ];
 
-// 📌 Helmet — sécurisation des en-têtes HTTP
+//Helmet — sécurisation des en-têtes HTTP
+// app.use(
+//   helmet({
+//     contentSecurityPolicy: false,
+//   })
+// );
+
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Désactivé si tu utilises des ressources externes (Swagger, etc.)
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: false,
+    crossOriginEmbedderPolicy: false,
   })
 );
 
 // Middleware CORS avec cookies (credentials: true)
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // autorise Postman / mobile
+    if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       return callback(new Error(`Origine ${origin} non autorisée par CORS.`), false);
     }
     return callback(null, true);
   },
-  credentials: true, // nécessaire pour envoyer les cookies
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
+
+// IMPORTANT : autoriser preflight
+app.options('*', cors());
 
 // Middleware pour parser les cookies
 app.use(cookieParser());

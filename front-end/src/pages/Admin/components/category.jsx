@@ -37,7 +37,7 @@ const CategoryList = () => {
       url,
       data: form,
     })
-      .then(() => axios.get("http://localhost:8001/api/category"))
+      .then(() => axiosInstance.get("/category"))
       .then((res) => {
         setCategories(res.data);
         setForm({ nom_categorie: "", description: "" });

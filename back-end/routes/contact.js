@@ -6,7 +6,7 @@ import { sendEmail } from '../utils/email.js';
 const router = express.Router();
 
 router.post(
-  '/contact',
+  '/',
   [
     body('email').isEmail().withMessage('Email invalide'),
     body('subject').isLength({ min: 3 }).withMessage('Sujet trop court'),

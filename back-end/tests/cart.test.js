@@ -1,6 +1,7 @@
 import request from "supertest";
 import app from "../app.js";
 
+
 // Mock de la connexion DB
 jest.mock("../queries/connect.js", () => ({
   getConnection: jest.fn((cb) => {

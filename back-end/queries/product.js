@@ -1,7 +1,7 @@
 export function Insert_product(client, data, callback) {
-  const { titre, description, prix, image } = data;
-  const sql = "INSERT INTO produits (titre, description, prix, image) VALUES (?, ?, ?, ?)";
-  client.query(sql, [titre, description, prix, image], callback);
+  const { titre, description, prix, stock, image } = data;
+  const sql = "INSERT INTO produits (titre, description, prix, stock, image) VALUES (?, ?, ?, ?, ?)";
+  client.query(sql, [titre, description, prix , stock, image], callback);
 }
 
 export function Add_product_categories(client, id_produit, categories, callback) {
@@ -49,7 +49,7 @@ export function Get_products_of_category(client, id_categorie, callback) {
 }
 
 export function Update_product(client, data, callback) {
-  const { id_produit, titre, description, prix, image } = data;
+  const { id_produit, titre, description, prix, stock, image } = data;
 
   const fields = [];
   const values = [];
@@ -65,6 +65,10 @@ export function Update_product(client, data, callback) {
   if (prix !== undefined) {
     fields.push("prix = ?");
     values.push(prix);
+  }
+  if (stock !== undefined) {
+    fields.push("stock = ?");
+    values.push(stock);
   }
   if (image !== undefined) {
     fields.push("image = ?");
@@ -88,7 +92,6 @@ export function Update_product(client, data, callback) {
 
   client.query(query, values, callback);
 }
-
 
 export function Delete_product(client, id_produit, callback) {
   const sql = "DELETE FROM produits WHERE id_produit = ?";

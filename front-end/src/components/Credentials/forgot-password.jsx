@@ -19,7 +19,7 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      const response = await axios.post('http://localhost:8001/api/request-reset', { email: values.email });
+      const response = await axiosInstance.post('/request-reset', { email: values.email });
       setMessage(response.data.message);
       setError('');
       resetForm();

@@ -148,159 +148,6 @@ router.post(
           writeStream.on('error', reject);
         });
 
-        // // 6. Transaction SQL pour commandes, détails, paiements, promo
-        // await new Promise((resolve, reject) => {
-        //   client.beginTransaction(async (err) => {
-        //     if (err) return reject(err);
-
-        //     try {
-        //       // 7. Vider le panier
-        //       await new Promise((resolve, reject) => {
-        //         Clear_cart(client, id_user, (err) => {
-        //           if (err) reject(err);
-        //           else resolve();
-        //         });
-        //       });
-
-        //       // 8. Déterminer le statut de la commande et du paiement selon Stripe
-        //       let statutCommande = 'payée';
-        //       let statutPaiement = 'réussi';
-        //       if (!session || session.payment_status !== 'paid') {
-        //         statutCommande = 'échouée';
-        //         statutPaiement = 'échoué';
-        //       }
-
-        //       // Arrondir les montants à 2 décimales AVANT l'insertion
-        //       const montant_total = Number(finalAmount.toFixed(2));
-        //       const montant_reduction = Number((initialAmount - finalAmount).toFixed(2));
-
-        //       //--------Ajout--------//
-        //       const userInfo = await new Promise((resolve, reject) => {
-        //         GetUserById(client, id_user, (err, data) => {
-        //         if (err) return reject(err);
-        //         if (!data.exists || !data.results.length) return resolve({ nom: null, email: null });
-
-        //         const user = data.results[0];
-        //         resolve({ nom: user.nom, email: user.email });
-        //         });
-        //       });
-
-        //       const email_snapshot = userInfo.email;
-        //       const nom_snapshot = userInfo.nom;
-        //       //------------------//
-
-
-        //       // 9. Enregistrer la commande
-        //       const commandeResult = await new Promise((resolve, reject) => {
-        //         // Insert_order(
-        //         //   client,
-        //         //   {
-        //         //     id_user,
-        //         //     montant_total,
-        //         //     montant_reduction,
-        //         //     id_promotion: id_promotion || null,
-        //         //     statut: statutCommande
-        //         //   },
-        //         //   (err, result) => {
-        //         //     if (err) reject(err);
-        //         //     else resolve(result);
-        //         //   }
-        //         // );
-        //    Insert_order(
-        //     client,
-        //     {
-        //       id_user,
-        //       montant_total,
-        //       montant_reduction,
-        //       id_promotion: id_promotion || null,
-        //       statut: statutCommande,
-        //       email_snapshot: userInfo.email,
-        //       nom_snapshot: userInfo.nom,
-        //       // Ajout de tous les champs de snapshot depuis billingInfo
-        //       adresse_snapshot: billingInfo.adresse,
-        //       ville_snapshot: billingInfo.ville,
-        //       code_postal_snapshot: billingInfo.codePostal,
-        //       pays_snapshot: billingInfo.pays,
-        //       telephone_snapshot: billingInfo.telephone,
-        //       complement_adresse_snapshot: billingInfo.complementAdresse,
-        //       region_snapshot: billingInfo.region,
-        //       nom_entreprise_snapshot: billingInfo.nomEntreprise,
-        //       numero_tva_snapshot: billingInfo.numeroTva
-        //     },
-        //     (err, result) => {
-        //       if (err) reject(err);
-        //       else resolve(result);
-        //     }
-        //   );
-        // });
-        //       const id_commande = commandeResult.insertId;
-        //       const facture_token = commandeResult.facture_token;
-
-        //       // 10. Enregistrer les détails de la commande
-        //       for (const item of cartItems) {
-        //         await new Promise((resolve, reject) => {
-        //           Insert_order_detail(
-        //             client,
-        //             {
-        //               id_commande,
-        //               id_produit: item.id_produit,
-        //               prix_unitaire: item.prix
-        //             },
-        //             (err) => {
-        //               if (err) reject(err);
-        //               else resolve();
-        //             }
-        //           );
-        //         });
-        //       }
-
-        //       // 11. Enregistrer le paiement
-        //       await new Promise((resolve, reject) => {
-        //         Upsert_payment(
-        //           client,
-        //           {
-        //             id_commande,
-        //             methode_paiement: methodeStripe,
-        //             statut_paiement: statutPaiement,
-        //             montant_transaction: Number(finalAmount.toFixed(2)),
-        //             session_stripe_id: sessionId,
-        //             transaction_id: session?.payment_intent || null
-        //           },
-        //           (err) => {
-        //             if (err) reject(err);
-        //             else resolve();
-        //           }
-        //         );
-        //       });
-
-        //       // 12. Enregistrer l'utilisation du code promo si besoin
-        //       if (id_promotion) {
-        //         await new Promise((resolve, reject) => {
-        //           Has_user_used_offer(client, id_user, id_promotion, (err, hasUsed) => {
-        //             if (err) return reject(err);
-        //             if (hasUsed) return resolve();
-        //             Record_offer_usage(client, id_user, id_promotion, (err) => {
-        //               if (err) reject(err);
-        //               else resolve();
-        //             });
-        //           });
-        //         });
-        //       }
-
-        //       // 13. Commit de la transaction
-        //       client.commit((err) => {
-        //         if (err) reject(err);
-        //         else resolve();
-        //       });
-        //     } catch (error) {
-        //       client.rollback(() => reject(error));
-        //     }
-        //   });
-        // });
-
-        // // res.json({ success: true });
-        // res.json({ success: true, id_commande, facture_token });
-
 // Déclarez les variables avant la transaction
 let id_commande;
 let facture_token;
@@ -331,7 +178,6 @@ await new Promise((resolve, reject) => {
       const montant_total = Number(finalAmount.toFixed(2));
       const montant_reduction = Number((initialAmount - finalAmount).toFixed(2));
 
-      //--------Ajout--------//
       const userInfo = await new Promise((resolve, reject) => {
         GetUserById(client, id_user, (err, data) => {
           if (err) return reject(err);
@@ -344,8 +190,7 @@ await new Promise((resolve, reject) => {
 
       const email_snapshot = userInfo.email;
       const nom_snapshot = userInfo.nom;
-      //------------------//
-
+   
       // 9. Enregistrer la commande
       const commandeResult = await new Promise((resolve, reject) => {
         Insert_order(
@@ -380,23 +225,38 @@ await new Promise((resolve, reject) => {
       id_commande = commandeResult.insertId;
       facture_token = commandeResult.facture_token;
 
-      // 10. Enregistrer les détails de la commande
-      for (const item of cartItems) {
-        await new Promise((resolve, reject) => {
-          Insert_order_detail(
-            client,
-            {
-              id_commande,
-              id_produit: item.id_produit,
-              prix_unitaire: item.prix
-            },
-            (err) => {
-              if (err) reject(err);
-              else resolve();
-            }
-          );
-        });
-      }
+    // 10. Enregistrer les détails de la commande et mettre à jour le stock
+    for (const item of cartItems) {
+      // Insérer le détail de commande
+      await new Promise((resolve, reject) => {
+        Insert_order_detail(
+          client,
+          {
+            id_commande,
+            id_produit: item.id_produit,
+            prix_unitaire: item.prix
+          },
+          (err) => {
+            if (err) reject(err);
+            else resolve();
+          }
+        );
+      });
+
+      // Mettre à jour le stock du produit (stock - quantité)
+      const quantity = item.quantity || 1;
+      await new Promise((resolve, reject) => {
+        client.query(
+          "UPDATE produits SET stock = stock - ? WHERE id_produit = ? AND stock >= ?",
+          [quantity, item.id_produit, quantity],
+          (err, result) => {
+            if (err) return reject(err);
+            if (result.affectedRows === 0) return reject(`Stock insuffisant pour le produit ${item.id_produit}`);
+            resolve();
+          }
+        );
+      });
+    }
 
       // 11. Enregistrer le paiement
       await new Promise((resolve, reject) => {

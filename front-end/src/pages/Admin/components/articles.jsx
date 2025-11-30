@@ -39,13 +39,14 @@ const ArticlesManagement = () => {
       };
 
     const [articles, setArticles] = useState([]);
-      const [form, setForm] = useState({
+    const [form, setForm] = useState({
       id_produit: null,
       titre: "",
       description: "",
       prix: "",
+      stock: "",
       image: null, // fichier image (Blob)
-  });
+    });
     const [previewImage, setPreviewImage] = useState(null);
     const [editing, setEditing] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -54,11 +55,11 @@ const ArticlesManagement = () => {
   // Charger les articles
   const fetchArticles = async () => {
     try {
-      const res = await axios.get("http://localhost:8001/api/products");
+      const res = await axiosInstance.get("/products");
       setArticles(res.data);
     } catch (err) {
-      console.error("Erreur récupération articles:", err);
-      setError("Erreur chargement des articles");
+        console.error("Erreur récupération articles:", err);
+        setError("Erreur chargement des articles");
     }
   };
   
@@ -70,7 +71,7 @@ const ArticlesManagement = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get("http://localhost:8001/api/category");
+      const res = await axiosInstance.get("/category");
       console.log("Catégories récupérées :", res.data);
       setCategories(res.data);
     } catch (err) {
@@ -136,6 +137,7 @@ const ArticlesManagement = () => {
       formData.append("titre", form.titre);
       formData.append("description", form.description);
       formData.append("prix", form.prix);
+      formData.append("stock", form.stock);
 
       selectedCategories.forEach((id) => {
         formData.append("id_categories", id);
@@ -156,7 +158,7 @@ const ArticlesManagement = () => {
       }
 
       await fetchArticles();
-      setForm({ id_produit: null, titre: "", description: "", prix: "", image: null, id_categorie: "" }); // reset du formulaire sur le front
+      setForm({ id_produit: null, titre: "", description: "", prix: "",stock: "" , image: null, id_categorie: "" }); // reset du formulaire sur le front
       setSelectedCategories([]);
       setPreviewImage(null);
       setEditing(false);
@@ -173,6 +175,7 @@ const ArticlesManagement = () => {
       titre: article.titre,
       description: article.description || "",
       prix: article.prix,
+      stock: article.stock,
       image: null, // Pas de modification d’image pour simplifier ici
     });
     setPreviewImage(null);
@@ -195,7 +198,6 @@ const ArticlesManagement = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Voulez-vous vraiment supprimer cet article ?")) {
       try {
-        // await axios.delete(`http://localhost:8001/api/products/delete/${id}`, { headers });
         await axiosInstance.delete(`/products/delete/${id}`);
         setArticles(articles.filter((a) => a.id_produit !== id));
       } catch (err) {
@@ -239,6 +241,16 @@ const ArticlesManagement = () => {
               onChange={handleChange}
               required
               step="0.01"
+              min="0"
+              className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:text-white"
+            />
+            <input
+              type="number"
+              name="stock"
+              placeholder="Stock"
+              value={form.stock}
+              onChange={handleChange}
+              required
               min="0"
               className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:text-white"
             />
@@ -355,7 +367,7 @@ const ArticlesManagement = () => {
                   type="button"
                   onClick={() => {
                     setEditing(false);
-                    setForm({ id_produit: null, titre: "", description: "", prix: "", image: null});
+                    setForm({ id_produit: null, titre: "", description: "", prix: "",stock: "" , image: null});
                     setSelectedCategories([]);
                     setPreviewImage(null);
                     setError(null);
@@ -390,6 +402,7 @@ const ArticlesManagement = () => {
                   <strong>{article.titre}</strong>
                   <p className="text-sm">{article.description}</p>
                   <p className="text-sm">Prix : {article.prix} €</p>
+                  <p className="text-sm">Stock : {article.stock}</p>
                 </div>
                  <div className="flex gap-2 mt-4 sm:mt-0">
         <button

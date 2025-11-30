@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../../components/PageComponents/Footer";
+import axiosInstance from "../../services/axiosInstance";
 
 const CataloguePage = () => {
   const [products, setProducts] = useState([]);
@@ -13,8 +14,6 @@ const CataloguePage = () => {
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const totalPages = Math.ceil(products.length / productsPerPage || 1);
-
-
 
   const navigate = useNavigate();
 
@@ -46,8 +45,8 @@ const CataloguePage = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("http://localhost:8001/api/category");
-      const data = await res.json();
+      const res = await axiosInstance.get("/category");
+      const data = res.data;
       setCategories(data);
     } catch (error) {
       console.error("Erreur chargement catégories :", error);
@@ -57,21 +56,26 @@ const CataloguePage = () => {
   const fetchAllProducts = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8001/api/products");
-      const data = await res.json();
+      const res = await axiosInstance.get("/products"); 
+      const data = res.data;
 
       const productsWithBlobImages = await Promise.all(
         data.map(async (product) => {
           if (product.image) {
-            const blobRes = await fetch(`http://localhost:8001/api/products/${product.id_produit}/image`);
-            const blob = await blobRes.blob();
-            const imageUrl = URL.createObjectURL(blob);
-            return { ...product, image_url: imageUrl };
+            try{
+              const blobRes = await axiosInstance.get(`/products/${product.id_produit}/image`, {
+                responseType: "blob"
+              });
+              const imageUrl = URL.createObjectURL(blobRes.data);
+              return { ...product, image_url: imageUrl };
+            } catch(err){
+              console.error("Erreur chargement image produit", product.id_produit, err);
+              return product;
+            }
           }
           return product;
         })
       );
-
       setProducts(productsWithBlobImages);
     } catch (error) {
       console.error("Erreur chargement produits :", error);
@@ -83,15 +87,17 @@ const CataloguePage = () => {
   const fetchProductsByCategory = async (categoryId) => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:8001/api/productCategory/categorie/${categoryId}`);
-      const data = await res.json();
+      const res = await axiosInstance.get(`/productCategory/categorie/${categoryId}`);
+      const data = res.data;
 
       const productsWithBlobImages = await Promise.all(
         data.map(async (product) => {
           if (product.image) {
-            const blobRes = await fetch(`http://localhost:8001/api/products/${product.id_produit}/image`);
-            const blob = await blobRes.blob();
-            const imageUrl = URL.createObjectURL(blob);
+        const blobRes = await axiosInstance.get(`/products/${product.id_produit}/image`, {
+          responseType: "blob"
+        });
+        const imageUrl = URL.createObjectURL(blobRes.data);
+
             return { ...product, image_url: imageUrl };
           }
           return product;
@@ -146,7 +152,9 @@ const CataloguePage = () => {
                 }`}
                 onClick={() => handleCategoryClick(cat.id_categorie)}
               >
-                {cat.nom_categorie}
+                 {cat.nom_categorie.length > 18
+            ? cat.nom_categorie.slice(0, 18) + "…"
+            : cat.nom_categorie}
               </button>
             </li>
           ))}

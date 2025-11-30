@@ -46,23 +46,23 @@ export function show_sales_and_avg_basket(client, period, callback) {
   client.query(query, callback);
 }
 
-  export function show_best_product_by_category(client, id_categorie, callback) {
-    const query = ` SELECT 
-                    p.id_produit,
-                    p.titre,
-                    COUNT(*) AS nb_article_vendus
-                    FROM commandes c
-                    JOIN details_commandes dc ON c.id_commande = dc.id_commande
-                    JOIN produits p ON dc.id_produit = p.id_produit
-                    JOIN produit_categorie pc ON p.id_produit = pc.id_produit
-                    JOIN categories cat ON pc.id_categorie = cat.id_categorie
-                    WHERE c.statut IN ('payée', 'activée')
-                    AND cat.id_categorie = ?
-                    GROUP BY p.id_produit, p.titre
-                    ORDER BY nb_article_vendus DESC
-                    LIMIT 10;`;
-    client.query(query, [id_categorie], callback);
-  }
+export function show_best_product_by_category(client, id_categorie, callback) {
+  const query = ` SELECT 
+                  p.id_produit,
+                  p.titre,
+                  COUNT(*) AS nb_article_vendus
+                  FROM commandes c
+                  JOIN details_commandes dc ON c.id_commande = dc.id_commande
+                  JOIN produits p ON dc.id_produit = p.id_produit
+                  JOIN produit_categorie pc ON p.id_produit = pc.id_produit
+                  JOIN categories cat ON pc.id_categorie = cat.id_categorie
+                  WHERE c.statut IN ('payée', 'activée')
+                  AND cat.id_categorie = ?
+                  GROUP BY p.id_produit, p.titre
+                  ORDER BY nb_article_vendus DESC
+                  LIMIT 10;`;
+  client.query(query, [id_categorie], callback);
+}
 
 // // catégorie la plus populaire
 

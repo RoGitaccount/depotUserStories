@@ -32,9 +32,30 @@ const ProductDetailPage = () => {
 
   const fetchSuggestions = async () => {
     try {
-      const res = await fetch(`http://localhost:8001/api/products/${id}/suggestions`);
-      const data = await res.json();
-      setSuggestions(data); // image_url déjà inclus dans data
+      const res = await axiosInstance.get(`/products/${id}/suggestions`);
+      const data = res.data;
+  
+      // Récupérer les images pour chaque suggestion
+      const suggestionsWithImages = await Promise.all(
+        data.map(async (prod) => {
+          if (prod.image) {
+            try {
+              const imgRes = await axiosInstance.get(`/products/${prod.id_produit}/image`, {
+                responseType: 'blob'
+              });
+              const imageUrl = URL.createObjectURL(imgRes.data);
+              return { ...prod, imageObjectUrl: imageUrl };
+            } catch (imgErr) {
+              console.error(`Erreur chargement image produit ${prod.id_produit}`, imgErr);
+              return prod; // Retourne sans image
+            }
+          } else {
+            return prod;
+          }
+        })
+      );
+  
+      setSuggestions(suggestionsWithImages);
     } catch (error) {
       console.error("Erreur récupération suggestions :", error);
     }
@@ -43,10 +64,18 @@ const ProductDetailPage = () => {
   
   const fetchProduit = async () => {
     try {
-      const res = await fetch(`http://localhost:8001/api/products/${id}`);
-      const data = await res.json();
+      const res = await axiosInstance(`/products/${id}`);
+      const data = res.data;
   
-      // image_url déjà dans data
+      // Si l'image est un Blob (base64 ou autre), la récupérer à part
+      if (data.image) {
+        const imageRes = await axiosInstance.get(`/products/${id}/image` , {
+          responseType : "blob"
+        });
+        const imageUrl = URL.createObjectURL(imageRes.data);
+        data.imageObjectUrl = imageUrl;
+      }
+  
       setProduit(data);
     } catch (error) {
       console.error("Erreur récupération produit :", error);
