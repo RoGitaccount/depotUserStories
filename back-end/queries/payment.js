@@ -1,5 +1,3 @@
-// ========== Paiements ==========
-
 // Créer ou mettre à jour un paiement
 
 export function Upsert_payment(client, {
@@ -78,10 +76,38 @@ export function Delete_payment(client, id_paiement, callback) {
   client.query(query, [id_paiement], callback);
 }
 
-// ========== Informations de facturation ==========
 
-  // Créer ou mettre à jour les infos de facturation utilisateur
-  export function Upsert_billing_info(client, {
+// Créer ou mettre à jour les infos de facturation utilisateur
+export function Upsert_billing_info(client, {
+  id_user,
+  nom_entreprise,
+  numero_tva,
+  adresse_ligne1,
+  adresse_ligne2,
+  ville,
+  region,
+  code_postal,
+  pays,
+  telephone
+}, callback) {
+  const query = `
+    INSERT INTO informations_facturation (
+      id_user, nom_entreprise, numero_tva,
+      adresse_ligne1, adresse_ligne2, ville,
+      region,code_postal, pays, telephone
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      nom_entreprise = COALESCE(VALUES(nom_entreprise), nom_entreprise),
+      numero_tva = COALESCE(VALUES(numero_tva), numero_tva),
+      adresse_ligne1 = COALESCE(VALUES(adresse_ligne1), adresse_ligne1),
+      adresse_ligne2 = COALESCE(VALUES(adresse_ligne2), adresse_ligne2),
+      ville = COALESCE(VALUES(ville), ville),
+      region = COALESCE(VALUES(region), region),
+      code_postal = COALESCE(VALUES(code_postal), code_postal),
+      pays = COALESCE(VALUES(pays), pays),
+      telephone = COALESCE(VALUES(telephone), telephone)
+  `;
+  client.query(query, [
     id_user,
     nom_entreprise,
     numero_tva,
@@ -92,40 +118,11 @@ export function Delete_payment(client, id_paiement, callback) {
     code_postal,
     pays,
     telephone
-  }, callback) {
-    const query = `
-      INSERT INTO informations_facturation (
-        id_user, nom_entreprise, numero_tva,
-        adresse_ligne1, adresse_ligne2, ville,
-        region,code_postal, pays, telephone
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE
-        nom_entreprise = COALESCE(VALUES(nom_entreprise), nom_entreprise),
-        numero_tva = COALESCE(VALUES(numero_tva), numero_tva),
-        adresse_ligne1 = COALESCE(VALUES(adresse_ligne1), adresse_ligne1),
-        adresse_ligne2 = COALESCE(VALUES(adresse_ligne2), adresse_ligne2),
-        ville = COALESCE(VALUES(ville), ville),
-        region = COALESCE(VALUES(region), region),
-        code_postal = COALESCE(VALUES(code_postal), code_postal),
-        pays = COALESCE(VALUES(pays), pays),
-        telephone = COALESCE(VALUES(telephone), telephone)
-    `;
-    client.query(query, [
-      id_user,
-      nom_entreprise,
-      numero_tva,
-      adresse_ligne1,
-      adresse_ligne2,
-      ville,
-      region,
-      code_postal,
-      pays,
-      telephone
-    ], callback);
-  }
+  ], callback);
+}
 
-    // Lire les infos de facturation d'un utilisateur et son mail
-  export function Get_billing_info(client, id_user, callback) {
+  // Lire les infos de facturation d'un utilisateur et son mail
+export function Get_billing_info(client, id_user, callback) {
   const query = `
     SELECT 
       i.*, 

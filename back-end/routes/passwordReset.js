@@ -50,7 +50,7 @@ router.post(
           { expiresIn: "15m" }
         );
 
-        const resetLink = `http://localhost:5173/resetpassword?token=${resetToken}`;
+        const resetLink = `${process.env.FRONT_END_URL}/resetpassword?token=${resetToken}`;
 
         try {
           await sendEmail(

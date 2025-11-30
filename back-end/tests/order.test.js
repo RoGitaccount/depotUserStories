@@ -1,7 +1,10 @@
 import request from "supertest";
 import app from "../app.js";
 
-// ✅ Mock de la connexion à la DB
+beforeAll(() => {
+  jest.spyOn(console, "log").mockImplementation(() => {});
+});
+
 jest.mock("../queries/connect.js", () => ({
   getConnection: jest.fn((cb) => {
     cb(null, {
@@ -42,7 +45,7 @@ jest.mock("../queries/connect.js", () => ({
 
 
 
-// ✅ Mocks des middlewares
+//  Mocks des middlewares
 jest.mock("../middlewares/authenticateToken.js", () => ({
   authenticateToken: (req, res, next) => {
     req.user = { id: 123 }; // Simule un utilisateur connecté
@@ -62,7 +65,7 @@ jest.mock("../middlewares/updateLastActivity.js", () => ({
   updateLastActivity: (req, res, next) => next(),
 }));
 
-// ✅ Début des tests
+//  Début des tests
 describe("Order API", () => {
   it("POST /api/order/add → ajoute une commande", async () => {
     const res = await request(app).post("/api/order/add").send({
@@ -117,7 +120,7 @@ it("GET /api/order/user/:id → retourne les commandes de l'utilisateur", async 
   });
 });
 
-// ✅ Fermeture propre après tous les tests
+//  Fermeture propre après tous les tests
 afterAll((done) => {
   setTimeout(() => done(), 500); // Laisse le temps à Jest de tout fermer
 });

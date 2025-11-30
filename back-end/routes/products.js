@@ -78,6 +78,7 @@ router.post(
     body("titre").notEmpty().withMessage("Le nom du produit est requis."),
     body("description").optional().isString(),
     body("prix").isFloat({ gt: 0 }).withMessage("Le prix doit être un nombre positif."),
+    body("stock").isInt({min: 0}).withMessage("Le stock ne peut pas etre inférieur à 0."),
     body("id_categories")
       .customSanitizer((value, { req }) => {
         if (Array.isArray(value)) return value;
@@ -93,10 +94,10 @@ router.post(
   (req, res) => {
     getConnection((err, client) => {
       if (err) return res.status(500).json({ message: "Erreur de connexion à la base de données." });
-      const { titre, description, prix, id_categories } = req.body;
+      const { titre, description, prix, stock, id_categories } = req.body;
       const imageBuffer = req.file ? req.file.buffer : null;
 
-      Insert_product(client, { titre, description, prix, image: imageBuffer }, (err, result) => {
+      Insert_product(client, { titre, description, prix, stock, image: imageBuffer }, (err, result) => {
         if (err) {
           client.release();
           console.error("Erreur lors de l'insertion du produit :", err);
@@ -133,6 +134,7 @@ router.put(
     body("titre").optional().notEmpty().withMessage("Le nom du produit est requis."),
     body("description").optional().isString(),
     body("prix").optional().isFloat({ gt: 0 }).withMessage("Le prix doit être un nombre positif."),
+    body("stock").isInt({min: 0}).withMessage("Le stock ne peut pas etre inférieur à 0."),
     body("id_categories")
       .optional()
       .customSanitizer((value, { req }) => {
@@ -151,10 +153,10 @@ router.put(
     getConnection((err, client) => {
       if (err) return res.status(500).json({ message: "Erreur de connexion à la base de données." });
       const { id_produit } = req.params;
-      const { titre, description, prix, id_categories } = req.body;
+      const { titre, description, prix, stock, id_categories } = req.body;
       const imageBuffer = req.file ? req.file.buffer : null;
 
-      if (!titre && !description && !prix && !imageBuffer && !id_categories) {
+      if (!titre && !description && !prix && !stock && !imageBuffer && !id_categories) {
         client.release();
         return res.status(400).json({ message: "Aucune donnée fournie pour la mise à jour." });
       }
@@ -166,6 +168,7 @@ router.put(
           titre,
           description,
           prix,
+          stock,
           image: imageBuffer,
         },
         (err, result) => {
@@ -281,7 +284,5 @@ router.get(
     });
   }
 );
-
-
 
 export default router;

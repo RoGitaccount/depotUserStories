@@ -97,7 +97,7 @@ router.post(
         return res.status(500).json({ message: "Erreur de connexion à la base de données." });
       }
       const { code, montant_reduction, date_expiration, est_actif } = req.body;
-      console.log(req.body);
+      // console.log(req.body);
       PromotionQueries.Insert_offer(client, { code, montant_reduction, date_expiration, est_actif }, (err, results) => {
         client.release();
         if (err) {
@@ -154,7 +154,7 @@ router.put(
       }
       const { id_promotion } = req.params;
       const { code, montant_reduction, date_expiration, est_actif } = req.body;
-      console.log(req.body);
+      // console.log(req.body);
       PromotionQueries.Update_offer(
         client,
         { id_promotion, code, montant_reduction, date_expiration, est_actif },

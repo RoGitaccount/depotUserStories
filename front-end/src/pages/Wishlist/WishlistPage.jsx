@@ -21,15 +21,17 @@ const WishlistPage = () => {
     try {
   
       const res = await axiosInstance.get('/wishlist');
-  
+      const data = res.data;
+
       // Charger les images blob pour chaque produit
       const wishlistWithImages = await Promise.all(
-        res.data.map(async (product) => {
+        data.map(async (product) => {
           if (product.image) {  // si tu as un champ image qui indique qu’il y a une image
             try {
-              const blobRes = await fetch(`http://localhost:8001/api/products/${product.id_produit}/image`);
-              const blob = await blobRes.blob();
-              const imageUrl = URL.createObjectURL(blob);
+              const blobRes = await axiosInstance.get(`/products/${product.id_produit}/image`, {
+                responseType: "blob"
+              });
+              const imageUrl = URL.createObjectURL(blobRes.data); //data correspond au données que le backend a renvoyées
               return { ...product, image_url: imageUrl };
             } catch (err) {
               console.error("Erreur chargement image produit", product.id_produit, err);
@@ -39,7 +41,6 @@ const WishlistPage = () => {
           return product;
         })
       );
-  
       setWishlist(wishlistWithImages);
       setError(null);
     } catch (err) {
@@ -64,7 +65,7 @@ const WishlistPage = () => {
     try {
       await axiosInstance.delete(`/wishlist/delete/${id_produit}`);
       loadWishlist();
-    } catch {      
+    } catch {
       toast.error('Erreur lors de la suppression.',
         {
         className:"toast-top-position",

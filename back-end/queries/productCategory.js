@@ -31,7 +31,6 @@ export function Update_product_categories(client, id_produit, id_categories, cal
   });
 }
 
-
 // Récupérer les catégories d’un produit
 export function Get_product_categories(client, id_produit, callback) {
   const sql = `

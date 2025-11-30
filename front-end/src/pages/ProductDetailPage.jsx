@@ -32,17 +32,18 @@ const ProductDetailPage = () => {
 
   const fetchSuggestions = async () => {
     try {
-      const res = await fetch(`http://localhost:8001/api/products/${id}/suggestions`);
-      const data = await res.json();
+      const res = await axiosInstance.get(`/products/${id}/suggestions`);
+      const data = res.data;
   
       // Récupérer les images pour chaque suggestion
       const suggestionsWithImages = await Promise.all(
         data.map(async (prod) => {
           if (prod.image) {
             try {
-              const imgRes = await fetch(`http://localhost:8001/api/products/${prod.id_produit}/image`);
-              const blob = await imgRes.blob();
-              const imageUrl = URL.createObjectURL(blob);
+              const imgRes = await axiosInstance.get(`/products/${prod.id_produit}/image`, {
+                responseType: 'blob'
+              });
+              const imageUrl = URL.createObjectURL(imgRes.data);
               return { ...prod, imageObjectUrl: imageUrl };
             } catch (imgErr) {
               console.error(`Erreur chargement image produit ${prod.id_produit}`, imgErr);
@@ -62,14 +63,15 @@ const ProductDetailPage = () => {
 
   const fetchProduit = async () => {
     try {
-      const res = await fetch(`http://localhost:8001/api/products/${id}`);
-      const data = await res.json();
+      const res = await axiosInstance(`/products/${id}`);
+      const data = res.data;
   
       // Si l'image est un Blob (base64 ou autre), la récupérer à part
       if (data.image) {
-        const imageRes = await fetch(`http://localhost:8001/api/products/${id}/image`);
-        const blob = await imageRes.blob();
-        const imageUrl = URL.createObjectURL(blob);
+        const imageRes = await axiosInstance.get(`/products/${id}/image` , {
+          responseType : "blob"
+        });
+        const imageUrl = URL.createObjectURL(imageRes.data);
         data.imageObjectUrl = imageUrl;
       }
   

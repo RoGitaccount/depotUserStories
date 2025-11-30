@@ -2,7 +2,8 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8001/api',
+  // baseURL: 'http://localhost:8001/api',
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
@@ -23,20 +24,13 @@ const processQueue = (error, token = null) => {
 
 // Fonction utilitaire pour vérifier si on est sur une page d'authentification
 const isAuthPage = () => {
-  const authPages = ['/login', '/register', '/verify-code', '/forgot-password', '/resetpassword','/Contact','/products'];
+  const authPages = ['/login', '/register', '/verify-code', '/forgot-password', '/resetpassword','/Contact','/products','/confirm-email-change'];
   return authPages.includes(window.location.pathname);
 };
 
 axiosInstance.interceptors.response.use(
   response => {
     // Vérifier si le backend demande une reconnexion
-    if (response.data?.mustReconnect) {
-      toast.info("Votre email a été modifié. Veuillez vous reconnecter.");
-      // Éviter la redirection si on est déjà sur une page d'auth
-      if (!isAuthPage()) {
-        window.location.href = "/login";
-      }
-    }
     return response;
   },
   async error => {
@@ -87,7 +81,8 @@ axiosInstance.interceptors.response.use(
         console.log('Tentative de refresh du token...');
         // Créer une instance temporaire pour éviter l'intercepteur
         const tempAxios = axios.create({
-          baseURL: 'http://localhost:8001/api',
+          // baseURL: 'http://localhost:8001/api',
+          baseURL: import.meta.env.VITE_API_URL,
           withCredentials: true,
         });
        

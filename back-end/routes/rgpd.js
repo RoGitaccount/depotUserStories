@@ -1,5 +1,8 @@
 import express from "express";
 import { body } from "express-validator";
+import moment from "moment";
+import jwt from "jsonwebtoken";
+import { sendEmail } from "../utils/email.js";
 import { authenticateToken } from "../middlewares/authenticateToken.js";
 import validateRequest from "../middlewares/validateRequest.js";
 import { updateLastActivity } from "../middlewares/updateLastActivity.js";
@@ -8,9 +11,6 @@ import { getConnection } from "../queries/connect.js";
 import PDFDocument from "pdfkit";
 import { Get_billing_info, Upsert_billing_info } from "../queries/payment.js";
 import { Update_user_phone } from "../queries/User.js";
-import moment from "moment";
-import jwt from "jsonwebtoken";
-import { sendEmail } from "../utils/email.js";
 
 const router = express.Router();
 
@@ -346,7 +346,6 @@ Pour toute question, contactez-nous à ${process.env.SUPPORT_EMAIL}`;
   }
 );
 
-//-----ajout----//
 
 // Route pour confirmer le changement d'email
 router.post("/confirm-email-change", 
@@ -420,10 +419,6 @@ router.post("/confirm-email-change",
     }
   }
 );
-
-//--------------//
-
-
 
 // DELETE - Suppression du compte (avec authenticateToken)
 router.delete("/me",

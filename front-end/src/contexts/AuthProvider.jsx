@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
   // Fonction utilitaire pour vérifier si on est sur une page d'authentification
   const isAuthPage = () => {
-    const authPages = ['/login', '/register', '/verify-code', '/forgot-password', '/resetpassword', '/confidentialite'];
+    const authPages = ['/login', '/register', '/verify-code', '/forgot-password', '/resetpassword', '/confidentialite','/confirm-email-change'];
     return authPages.includes(window.location.pathname);
   };
 
@@ -17,7 +17,6 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
       // Ne pas vérifier l'auth sur les pages d'authentification
       if (isAuthPage()) {
-        console.log('Sur une page d\'auth, pas de vérification automatique');
         setUser(null);
         setIsAuthenticated(false);
         setLoading(false);

@@ -113,8 +113,6 @@ export function Delete_offer(client, id_promotion, callback) {
   });
 }
 
-// __________nouvel ajout_________________
-
 // Enregistrer l'utilisation d'un code promo par un utilisateur
 export function Record_offer_usage(client, id_user, id_promotion, callback) {
   console.log('Tentative d\'enregistrement:', { id_user, id_promotion });

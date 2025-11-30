@@ -142,6 +142,3 @@ function generateMessageId() {
 }
 
 export { sendEmail };
-
-
-// ________________________________

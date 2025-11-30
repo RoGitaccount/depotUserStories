@@ -3,27 +3,6 @@ import React, { useEffect, useState } from "react";
 const Offers = () => {
   const [offers, setOffers] = useState([]);
   const [error, setError] = useState(null);
-
-  // useEffect(() => {
-  //   // const token = localStorage.getItem("token");
-
-  //   fetch("http://localhost:8001/api/offers", {
-  //     // headers: {
-  //     //   Authorization: `Bearer ${token}`,
-  //     // },
-  //     withCredentials: true,
-  //   })
-  //     .then((res) => {
-  //       if (!res.ok) throw new Error("Non autorisé ou erreur serveur");
-  //       return res.json();
-  //     })
-  //     .then((data) => setOffers(data))
-  //     .catch((err) => {
-  //       setError(err.message);
-  //       setOffers([]); // évite l'erreur .map si non tableau
-  //     });
-  // }, []);
-
     useEffect(() => {
       axiosInstance.get("/offers")
         .then((res) => setOffers(res.data))
