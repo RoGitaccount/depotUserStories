@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS commandes (
     id_user INT NOT NULL,
     date_commande DATETIME DEFAULT CURRENT_TIMESTAMP,
     date_modification DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    statut ENUM('en attente', 'payée', 'activée', 'annulée') NOT NULL DEFAULT 'en attente',
+    statut ENUM('en attente','payee','activee','annulee') NOT NULL DEFAULT 'en attente',
     montant_total DECIMAL(10, 2) NOT NULL,
     -- Si l'utilisateur a utilisé une promo
     id_promotion INT DEFAULT NULL,
@@ -151,8 +151,7 @@ CREATE TABLE IF NOT EXISTS paiements (
     id_commande INT NOT NULL,
     -- carte de crédit, PayPal, etc.
     methode_paiement VARCHAR(50),
-    statut_paiement ENUM ('en attente', 'réussi', 'échoué') DEFAULT 'en attente',
-    montant_transaction DECIMAL(10, 2) NOT NULL,
+    statut_paiement ENUM('en attente','reussi','echoue') DEFAULT 'en attente',    montant_transaction DECIMAL(10, 2) NOT NULL,
     date_transaction DATETIME DEFAULT CURRENT_TIMESTAMP,
     -- ID de session Stripe pour le paiement
     session_stripe_id VARCHAR(255), 
