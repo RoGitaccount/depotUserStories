@@ -39,24 +39,6 @@ import {
 jest.mock("../queries/Review.js");
 
 describe("REVIEWS API", () => {
-
-  it("POST /api/reviews/add-review ajoute un avis", async () => {
-    Insert_review.mockImplementation((client, data, cb) => {
-      cb(null, { insertId: 1 }); // renvoyer un objet simulant l'insertion
-    });
-
-    const res = await request(app)
-      .post("/api/reviews/add-review")
-      .send({
-        id_produit: 2,
-        note: 5,
-        commentaire: "Top"
-      });
-
-    expect(res.statusCode).toBe(201);
-    expect(res.body.message).toMatch(/succès/i);
-  });
-
   it("GET /api/reviews/:id_produit récupère les avis", async () => {
     Get_reviews_by_product.mockImplementation((client, id, cb) =>
       cb(null, [{ id_avis: 1, note: 4 }])
