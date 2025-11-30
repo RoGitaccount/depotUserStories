@@ -17,11 +17,11 @@ const OrderList = () => {
   const itemsPerPage = 10;
 
 
-  // enum('en attente','payée','activée','annulée')
+  // enum('en attente','payée','annulée')
   const statutLabels = {
     en_attente: "En attente",
-    payée: "Payée",
-    annulée:"Annulée"
+    payee: "Payee",
+    annulee:"Annulee"
   };
   
 
@@ -178,9 +178,9 @@ return (
             >
               <option value="en_attente">En attente</option>
               <option value="en_cours">En cours</option>
-              <option value="terminee">Terminée</option>
-              <option value="payee">Payée</option>
-              <option value="echouee">Échouée</option>
+              <option value="terminee">Terminee</option>
+              <option value="payee">Payee</option>
+              <option value="echouee">Échouee</option>
             </select>
             <button
               type="submit"
