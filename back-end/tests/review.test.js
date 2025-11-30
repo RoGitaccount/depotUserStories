@@ -1,6 +1,7 @@
 import request from "supertest";
 import app from "../app.js";
 
+// --- Mock des middlewares ---
 jest.mock("../middlewares/authenticateToken.js", () => ({
   authenticateToken: (req, res, next) => {
     req.user = { id: 1, role: "user" };
@@ -16,12 +17,17 @@ jest.mock("../middlewares/logActivity.js", () => ({
   logActivity: () => (req, res, next) => next()
 }));
 
+// --- Mock de la connexion à la BDD ---
 jest.mock("../queries/connect.js", () => ({
   getConnection: (cb) => {
-    cb(null, { query: jest.fn(), release: jest.fn() });
+    cb(null, {
+      query: (sql, params, callback) => callback(null, []),
+      release: jest.fn()
+    });
   }
 }));
 
+// --- Mock des fonctions Review ---
 import {
   Insert_review,
   Get_reviews_by_product,
@@ -35,7 +41,9 @@ jest.mock("../queries/Review.js");
 describe("REVIEWS API", () => {
 
   it("POST /api/reviews/add-review ajoute un avis", async () => {
-    Insert_review.mockImplementation((client, data, cb) => cb(null, true));
+    Insert_review.mockImplementation((client, data, cb) => {
+      cb(null, { insertId: 1 }); // renvoyer un objet simulant l'insertion
+    });
 
     const res = await request(app)
       .post("/api/reviews/add-review")
@@ -109,5 +117,4 @@ describe("REVIEWS API", () => {
 
     expect(res.statusCode).toBe(403);
   });
-
 });
