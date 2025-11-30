@@ -4,7 +4,7 @@ import express from "express";
 import { body, param } from "express-validator";
 import { getConnection } from "../queries/connect.js";
 import validateRequest from "../middlewares/validateRequest.js";
-import { Insert_review, Get_reviews_by_product, Update_review, Delete_review } from "../queries/Review.js";
+import { Insert_review, Get_reviews_by_product, Update_review, Delete_review, Update_product_average } from "../queries/Review.js";
 import { authenticateToken } from "../middlewares/authenticateToken.js";
 import { Get_review_author } from "../queries/Review.js";
 import { logActivity } from '../middlewares/logActivity.js';
@@ -16,8 +16,8 @@ const router = express.Router();
 router.post(
   "/add-review",
   authenticateToken,
-  updateLastActivity,
-  logActivity("Ajout d'un avis"),
+  //updateLastActivity,
+  //logActivity("Ajout d'un avis"),
   [
     body("id_produit").isInt().withMessage("Le champ 'id_produit' doit être un entier."),
     body("note").isInt({ min: 1, max: 5 }).withMessage("Le champ 'note' doit être un entier entre 1 et 5."),
@@ -29,12 +29,21 @@ router.post(
     const id_user = req.user.id;
     getConnection((err, client) => {
       if (err) return res.status(500).json({ message: "Erreur de connexion à la base de données." });
+
       Insert_review(client, { id_user, id_produit, note, commentaire }, (err, results) => {
-        client.release();
         if (err) {
+          client.release();
           return res.status(500).json({ message: "Erreur lors de l'ajout de l'avis." });
         }
-        res.status(201).json({ message: "Avis ajouté avec succès." });
+
+        Update_product_average(client, id_produit, (err, results) => {
+          client.release(); // ← on libère ici, après la 2e requête
+          if (err) {
+            return res.status(500).json({ message: "Erreur lors de la mise à jour de la note moyenne." }, results);
+          }
+
+          return res.status(201).json({ message: "Avis ajouté avec succès." });
+        });
       });
     });
   }

@@ -201,6 +201,9 @@ const handleAddAllToCart = async () => {
   }
 };
 
+
+
+
 if (error === "Vous devez être connecté pour accéder à votre wishlist.") {
   return (
     <div className="text-center text-black dark:text-white min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-blue-100 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
