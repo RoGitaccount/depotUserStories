@@ -1,4 +1,4 @@
-name: CI - Full Stack Jest
+name: CI-CD DSP Project
 
 on:
   push:
@@ -9,105 +9,122 @@ on:
       - master
 
 jobs:
-  start-servers:
-    runs-on: ubuntu-latest
-    outputs:
-      server-ready: ${{ steps.wait-servers.outcome }}
-    steps:
-      # 1. Cloner le dépôt
-      - uses: actions/checkout@v4
 
-      # 2. Installer Node.js 22.16.0
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.16.0'
-
-      # 3. Installer toutes les dépendances pour front + back
-      - name: Install dependencies
-        run: |
-          npm install
-          cd back-end && npm install
-          cd ../front-end && npm install
-      # 4. Installer wait-on
-      - name: Install wait-on
-        run: npm install -g wait-on
-
-      # Lancer front + back en parallèle
-      - name: Start frontend & backend
-        run: |
-          npm run dev &
-          sleep 15
-      # Attendre que les serveurs soient prêts (ports à adapter)
-      - name: Wait for servers
-        run: |
-          npx wait-on -t 60000 http://localhost:5173 http://localhost:8001
-          echo "Servers are ready"
-      # 7. Upload des logs si ça échoue
-      - name: Upload server logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: server-logs
-          path: server.log
-
-  run-tests:
-    needs: start-servers
-    runs-on: ubuntu-latest
-    steps:
-      # a. Cloner le dépôt
-      - uses: actions/checkout@v4
-
-      # b. Installer Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.16.0'
-          cache: 'npm'
-
-      # c. Installer les dépendances
-      - name: Install dependencies
-        run: npm install
-
-      # d. Lancer les tests Jest
-      - name: Run Jest tests
-        run: npx jest --runInBand --detectOpenHandles
-
-
-----
-
-name: CI - Backend Jest (Mock DB)
-
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
-
-jobs:
+  # 1) TEST BACKEND
   test-backend:
     runs-on: ubuntu-latest
     steps:
-      # 1. Cloner le dépôt
+
       - uses: actions/checkout@v4
 
-      # 2. Installer Node.js
-      - name: Set up Node.js
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-          cache: 'npm'
 
-      # 3. Installer toutes les dépendances backend
       - name: Install backend dependencies
         run: |
           cd back-end
           npm install
 
-      # 4. Lancer les tests Jest avec NODE_ENV=test
-      - name: Run Jest tests
+      - name: Install Jest + Babel
         run: |
           cd back-end
-          NODE_ENV=test npx jest --runInBand --detectOpenHandles
+          npm install --save-dev @babel/core @babel/preset-env babel-jest
+
+      - name: Run Jest tests
+        env:
+          NODE_ENV: test
+          AES_SECRET_KEY: 1234567890abcdef1234567890abcdef
+          AES_IV: abcdef1234567890abcdef1234567890
+          STRIPE_SECRET_KEY: sk_test_1234567890abcdef
+        run: |
+          cd back-end
+          npx jest --runInBand --detectOpenHandles
+
+      - name: Upload Jest logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-logs
+          path: back-end/test-results
+
+
+  # 2) BUILD + TEST DOCKER IMAGES
+  docker-build:
+    needs: test-backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+
+      # BACKEND
+      - name: Build backend image
+        run: |
+          docker build -t dsp-backend:${{ github.sha }} ./back-end
+
+      - name: Tag backend latest
+        run: |
+          docker tag dsp-backend:${{ github.sha }} dsp-backend:latest
+
+      - name: Test backend container
+        run: |
+          docker run -d -p 8001:8001 --name backend-test dsp-backend:${{ github.sha }}
+          sleep 8
+          curl -f http://localhost:8001 || (docker logs backend-test && exit 1)
+          docker stop backend-test
+          docker rm backend-test
+
+
+      # FRONTEND
+      - name: Build frontend image
+        run: |
+          docker build -t dsp-frontend:${{ github.sha }} ./front-end
+
+      - name: Tag frontend latest
+        run: |
+          docker tag dsp-frontend:${{ github.sha }} dsp-frontend:latest
+
+      - name: Test frontend container
+        run: |
+          docker run -d -p 8080:80 --name frontend-test dsp-frontend:${{ github.sha }}
+          sleep 5
+          curl -I http://localhost:8080 || (docker logs frontend-test && exit 1)
+          docker stop frontend-test
+          docker rm frontend-test
+
+
+  # 3) DEPLOY TO DOCKER HUB
+  deploy:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push backend image
+        run: |
+          docker tag dsp-backend:latest ${{ secrets.DOCKERHUB_USERNAME }}/dsp-backend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dsp-backend:latest
+
+      - name: Push frontend image
+        run: |
+          docker tag dsp-frontend:latest ${{ secrets.DOCKERHUB_USERNAME }}/dsp-frontend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dsp-frontend:latest
+
+      - name: Simulate deployment
+        run: |
+          echo "Image backend : ${{ secrets.DOCKERHUB_USERNAME }}/dsp-backend:latest"
+          echo "Image frontend : ${{ secrets.DOCKERHUB_USERNAME }}/dsp-frontend:latest"
+          echo "Déploiement simulé pour commit ${{ github.sha }}"
