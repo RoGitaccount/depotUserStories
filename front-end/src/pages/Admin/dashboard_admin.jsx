@@ -22,7 +22,7 @@ const DashboardAdmin = () => {
       case "commandes":
         return <OrdersManagement />;
       case "logs":
-        return <LogsPage />;
+        return <LogsPage/>;
       default:
         return null;
     }

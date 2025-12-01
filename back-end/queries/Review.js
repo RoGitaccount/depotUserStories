@@ -9,6 +9,16 @@ export function Insert_review(client, { id_user, id_produit, note, commentaire }
   });
 }
 
+export function Update_product_average(client, id_produit, callback) {
+  const query = "CALL UpdateNoteMoyenne(?)";
+  client.query(query, [id_produit], (err, results) => {
+    if (err) {
+      return callback(err, null);
+    }
+    callback(null, results);
+  });
+}
+
 // Récupérer les avis pour un produit
 export function Get_reviews_by_product(client, id_produit, callback) {
   const query = "SELECT avis.*, users.prenom FROM avis JOIN users ON avis.id_user = users.id_user WHERE id_produit = ? ORDER BY date_creation DESC";

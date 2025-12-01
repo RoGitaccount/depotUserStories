@@ -39,6 +39,7 @@ export function Get_user_wishlist(client, id_user, callback) {
     JOIN produits p ON w.id_produit = p.id_produit
     WHERE w.id_user = ?
     ORDER BY w.date_ajout DESC
+
   `;
   client.query(query, [id_user], callback);
 }
