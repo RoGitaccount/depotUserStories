@@ -73,11 +73,25 @@ jobs:
 
       - name: Test backend container
         run: |
-          docker run -d -p 8001:8001 --name backend-test dsp-backend:${{ github.sha }}
+          docker run -d \
+            -p 8001:8001 \
+            --name backend-test \
+            -e NODE_ENV=production \
+            -e AES_SECRET_KEY=1234567890abcdef1234567890abcdef \
+            -e AES_IV=abcdef1234567890abcdef1234567890 \
+            -e DB_HOST=localhost \
+            -e DB_USER=root \
+            -e DB_PASSWORD=root \
+            -e DB_NAME=testdb \
+            dsp-backend:${{ github.sha }}
+      
           sleep 8
+      
           curl -f http://localhost:8001 || (docker logs backend-test && exit 1)
+      
           docker stop backend-test
           docker rm backend-test
+
 
 
       # FRONTEND
